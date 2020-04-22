@@ -1,0 +1,75 @@
+<HTML>
+    <head>
+        <script src="../lib/flocking/dist/flocking-all.js"></script>
+        <!--script src="../lib/artlib/adam.js"></script-->
+        <script>
+            flock.init({
+                //chans:4, 
+                bufferSize: 256 // lowest that chrome allows
+            });
+            var as = flock.environment.audioSystem;
+        </script>
+    </head>
+    <body>
+
+    <script>
+        fluid.defaults( "adam.gridquencer", {
+            gradeNames: "adam.sequencer",
+            model :{}, 
+            subcomponents: {
+                grid: "adam.thegrid"
+            },
+        });
+
+        fluid.defaults( "adam.gridsynth", {
+            gradeNames: "fluid.modelComponent",
+            model : {
+                synth: null,
+                payloads:  [] // available payloads per step
+            }
+        });
+
+    </script>
+
+
+    <script src="synths.js"></script>
+    <script src="sequencer.js"></script>
+    <script>
+        var a = adam.sequencer();
+        var selectedsynth = adam.sawsynth; // 
+
+    </script>
+    <script src="enveloper.js"></script>
+    <script src="midimappings.js"></script>
+    <script>
+        var ccc = controllertogridmapper();
+    </script>
+
+
+    <input type="button" onclick="a.play();">START</input>
+    <ul>
+        <li> selected sequence puts payloads on top knobs? </li>
+        <li> make an api doc with list of functions and inputs</li>
+        <li> think through tracks and sequences and instruments </li>
+        <li><s>single step sequence</s> </li>
+        <li> <s>multiple synths availabe on top pads</s></li>
+        <li> <s>select sequence </s></li>
+        <li> <s>mute sequence</s> </li>
+        <li> reverse sequence </li>
+        <li> <s>delete sequence </s></li>
+        <li> <s>check to see if grid placement exists already... </s></li>
+        <li> <s>highlight step</s></li>
+        <li> change sequence length by ammending it </li>
+        <li> touch a step to edit its payload?</li>
+        <li> offset by touching it (requires mode switching?) </li>
+        <li> <s>delete by touching the zone again </s></li>
+        <li> change tempo</li>
+        <li> <s>multiple row/beat sequences</s></li>
+        <li> options for step payloads (put them on the next row?)</li>
+        <li> cross rhythms, poly temporal (sequencer sends message when a sync occurs?)</li>
+        <li> chain sequences </li>
+        <li> payloads have functions (random pitch, random pitch from set, non-uniform random pitch set</li>
+    </ul>
+
+    </body>
+</HTML>

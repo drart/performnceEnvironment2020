@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <link rel="shortcut icon" href="#" />
+
+        <script src="lib/flocking/dist/flocking-all.js"></script>
+        <script src="lib/artlib/adam.js"></script>
+        <!--script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.16/p5.js"></script-->
+        <!--script src="lib/p5js/p5.min.js"></script>
+        <script src="lib/p5js/p5.dom.min.js"></script-->
+
+        <script>
+            flock.init({
+                //chans:4, 
+                bufferSize: 256 // lowest that chrome allows
+            });
+            var as = flock.environment.audioSystem;
+        </script>
+        <style>
+            body{
+                padding: 0;
+                margin: 0;
+            }
+            #meter{
+                box-sizing: border-box; 
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                border: 3px solid grey;
+                border-radius: 15px;
+                width: 100%; //fallback
+                width: 100vw;
+                height: 75px;
+            }
+        </style>
+    </head>
+    <body>
+        <input type="checkbox" id="starter" name="starter"><span >start audio</span>
+        <script>
+            document.getElementById('starter').onclick= function(){
+                if (this.checked){
+                    flock.enviro.shared.play();
+                    /// useful for chrome and their gesture policy
+                    //flock.webAudio.audioSystem.audioContextSingleton.resume();
+                }else{
+                    flock.enviro.shared.stop();
+                }
+            };
+        </script>
+
+        <h2>ScrollWheel</h2>
+        <div id="wheeltarget"></div>
+        <h2>OSC</h2>
+        <div id="osctarget"></div>
+        <h2>MIDI</h2>
+        <div id="midi-display"></div>
+        <canvas id="meter"></canvas>
+
+        <!-- load midi interfaces -->
+        <script src="midicontrollers.js"></script>
+        <!-- load midi mappings -->
+        <script src="performancemappings.js"></script>
+        <!-- select a mapping -->
+        <script> 
+            flock.enviro.shared.play();
+            if (flock.environment.model.isPlaying === true){
+                document.getElementById('starter').checked = true;
+            }
+        </script>
+        <script src="sketch.js"></script>
+    </body>
+</html>
