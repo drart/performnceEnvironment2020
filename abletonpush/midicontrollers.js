@@ -80,97 +80,6 @@ adam.midi.domlog.ready = function(that){
 /////////////////////////////////////////////
 //  Controllers
 /////////////////////////////////////////////
-fluid.defaults("adam.midi.quneo", {
-    gradeNames: "flock.midi.connection", 
-    openImmediately: true,
-    ports: {
-        input: {
-            name : "QUNEO",
-        }
-    }
-});
-
-fluid.defaults("adam.midi.boppad", {
-    gradeNames: "flock.midi.connection",
-    openImmediately: true,
-    ports: {
-        input: {
-            name: "BopPad"
-        }
-    }
-});
-
-// write a basic MPE decoder and have it pair with a flock.band?
-fluid.defaults("adam.midi.seaboard", {
-    gradeNames: "flock.midi.connection",
-    openImmediately: true,
-    ports: {
-        input: {
-            name: "Seaboard BLOCK"
-        }
-    },
-    model: {
-        activevoices: []
-    },
-    listeners: {
-        noteOn: {
-            func: function(that, msg){
-                that.options.model.activevoices[msg.channel] = msg;
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-        noteOff: {
-            func: function(that,msg){
-                that.options.model.activevoices[msg.channel] = undefined;
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-        pitchbend: {
-            func: function(that,msg){
-                if(that.options.model.activevoices[msg.channel] !== undefined)
-                    that.options.model.activevoices[msg.channel].pitchbend = msg.value;
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-        control: {
-            func: function(that,msg){
-                if(that.options.model.activevoices[msg.channel] !== undefined)
-                    that.options.model.activevoices[msg.channel].control = msg.value;
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-        aftertouch: {
-            func: function(that,msg){
-                if(that.options.model.activevoices[msg.channel] !== undefined)
-                    that.options.model.activevoices[msg.channel].aftertouch = msg.pressure;
-                console.log(that.options.model.activevoices[msg.channel]);
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-    }
-});
-
-fluid.defaults("adam.midi.bcr2000", {
-    gradeNames: "flock.midi.connection",
-    openImmediately: true,
-    ports: {
-        input: {
-            name: "BCF2000 Port 1"
-        }
-    }
-});
-
-
-// Studiomux midi connection
-fluid.defaults("adam.midi.ims20", {
-    gradeNames: "flock.midi.connection",
-    openImmediately: true,
-    ports: {
-        input: {
-            name: "MS-20"
-        }
-    }
-});
 
 
 
@@ -266,10 +175,10 @@ fluid.defaults("adam.midi.push", {
         },
         clearLCD: {
             func: function(that){
-                that.clearLine(0)
-                that.clearLine(1)
-                that.clearLine(2)
-                that.clearLine(4)
+                that.clearLine(0);
+                that.clearLine(1);
+                that.clearLine(2);
+                that.clearLine(4);
             },
             args: ["{that}"]
         },

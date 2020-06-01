@@ -1,6 +1,6 @@
 <HTML>
     <head>
-        <script src="../lib/flocking/dist/flocking-all.js"></script>
+        <script src="node_modules/flocking/dist/flocking-all.js"></script>
         <!--script src="../lib/artlib/adam.js"></script-->
         <script>
             flock.init({
@@ -11,6 +11,20 @@
         </script>
     </head>
     <body>
+
+
+    <script src="synths.js"></script>
+    <script src="sequencer.js"></script>
+    <script>
+        var a = adam.sequencer();
+        var selectedsynth = adam.sawsynth; // 
+
+    </script>
+    <script src="enveloper.js"></script>
+    <script src="abletonpush/midimappings.js"></script>
+    <script>
+        var ccc = controllertogridmapper();
+    </script>
 
     <script>
         fluid.defaults( "adam.gridquencer", {
@@ -31,23 +45,8 @@
 
     </script>
 
-
-    <script src="synths.js"></script>
-    <script src="sequencer.js"></script>
-    <script>
-        var a = adam.sequencer();
-        var selectedsynth = adam.sawsynth; // 
-
-    </script>
-    <script src="enveloper.js"></script>
-    <script src="midimappings.js"></script>
-    <script>
-        var ccc = controllertogridmapper();
-    </script>
-
-
-    <input type="button" onclick="a.play();">START</input>
     <ul>
+        <li> change tempo</li>
         <li> selected sequence puts payloads on top knobs? </li>
         <li> make an api doc with list of functions and inputs</li>
         <li> think through tracks and sequences and instruments </li>
@@ -63,7 +62,6 @@
         <li> touch a step to edit its payload?</li>
         <li> offset by touching it (requires mode switching?) </li>
         <li> <s>delete by touching the zone again </s></li>
-        <li> change tempo</li>
         <li> <s>multiple row/beat sequences</s></li>
         <li> options for step payloads (put them on the next row?)</li>
         <li> cross rhythms, poly temporal (sequencer sends message when a sync occurs?)</li>

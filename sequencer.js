@@ -42,6 +42,8 @@ activeposition: null,
 },
 });
 */
+
+
 // TODO fix all of the 8 magic numbers
 fluid.defaults("adam.grid", {
     gradeNames: "fluid.modelComponent",
@@ -335,9 +337,8 @@ fluid.defaults("adam.sequencer",{
         }
     },
     events: {
-        thingy: null,
         barline: null,
-        allsync: null,
+        resync: null,
     },
     invokers: {
         setbpm: {
