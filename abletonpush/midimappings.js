@@ -102,7 +102,7 @@ fluid.defaults("controllertogridmapper", {
 });
 
 fluid.defaults("adam.pushconnection", {
-    gradeNames: ["flock.midi.connection"],
+    gradeNames: ["flock.midi.connection", "fluid.modelComponent"],
     openImmediately: true,
     sysex: true, 
     ports: {
@@ -113,7 +113,15 @@ fluid.defaults("adam.pushconnection", {
             name: "Ableton Push User Port" 
         }
     }, 
-    model: {},
+    model: {
+        lcd: ["hellos", "", "", ""],
+    },
+    modelListeners: {
+        lcd: {
+            funcName: "console.log",
+            args: ["Value changed to ", "{change}.value"] 
+        }
+    },
     gridsize: {rows: 8, columns: 8},
     notedown: undefined,  // should this be in the model?
     events: {
@@ -349,9 +357,9 @@ adam.pushstartlights = function(that){
     that.send({type: "control", number: 118, value: 1, channel: 0}); // delete button
     that.send({type: "control", number: 87, value: 1, channel: 0}); // new button
     that.send({type: "control", number: 40, value: 1, channel: 0}); // 1/16 button
-    that.send({type: "control", number: 20, value: 10, channel: 0}); //  top strip
-    that.send({type: "control", number: 21, value: 1, channel: 0}); //  top strip
-    that.send({type: "control", number: 102, value: 1, channel: 0}); // bottom strip
+    //that.send({type: "control", number: 20, value: 10, channel: 0}); //  top strip
+    //that.send({type: "control", number: 21, value: 1, channel: 0}); //  top strip
+    //that.send({type: "control", number: 102, value: 1, channel: 0}); // bottom strip
 
     that.send({type: "control", number: 90, value: 1, channel: 0}); // fixed length
     that.send({type: "control", number: 89, value: 1, channel: 0}); // automation 
