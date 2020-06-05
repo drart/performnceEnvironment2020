@@ -1,3 +1,7 @@
+//// todo 
+// writes to hardward should instead call to ststae and let changeappliers work
+
+
 fluid.defaults("controllertogridmapper", {
     gradeNames: ["fluid.modelComponent"], // push controller
     model: {
@@ -9,17 +13,19 @@ fluid.defaults("controllertogridmapper", {
     },
     components: { 
         push: {
-            type: "adam.pushconnection",
+            type: "adam.midi.push",
         },
     },
     events: {
         removesequence: null,
         selectcell: null,
         setcellpayload: null,
+        gridaction: null
     },
     gridsize: {rows: 8, columns: 8},
     notedown: undefined,
     listeners: {
+        /*
         "{push}.events.knobmoved": {
             func: function(that, msg){
                 if (msg.value === 71 ) { // first knob
@@ -28,29 +34,23 @@ fluid.defaults("controllertogridmapper", {
             },
             args: ["{that}", "{arguments}.0"]
         },
-        "{push}.events.noteOn.gridMapping": {
+        */
+        "{push}.events.noteOn": {
             funcName: "adam.midi.push.gridNoteOn",
             args: ["{that}", "{arguments}.0"]
         },
-        "{push}.events.noteOff.gridMapping": {
+        "{push}.events.noteOff": {
             funcName: "adam.midi.push.gridNoteOff",
             args: ["{that}", "{arguments}.0"]
         },
-        /*
-        "{push}.events.padDown": {
-        },
-        "{push}.events.padUp": {
-
-        },
-        */
         selectcell: {
             func: function(that, cell){
                 if(that.model.selectedcell !== undefined){
-                    that.push.writePad(that.model.selectedcell.row, that.model.selectedcell.column, 1);
+                    that.push.padWrite(that.model.selectedcell.row, that.model.selectedcell.column, 1);
                     that.model.lastselectedcell === that.model.selectedcell;
                 }
                 that.model.selectedcell = cell;
-                that.push.writePad(cell.row, cell.column, 13);
+                that.push.padWrite(cell.row, cell.column, 13);
 
                 // TODO make this better
                 //a.model.sequences[0].setlocationpayload(that.model.selectedcell, 100);
@@ -63,11 +63,10 @@ fluid.defaults("controllertogridmapper", {
             },
             args: ["{that}", "{arguments}.0", "{arguments}.1"]
         },
-        removesequence: {
-            func: console.log,
-            args: "fadfadf"
-        }, 
-        "{push}.events.deletemode": {
+        
+        /*
+        // rethink this
+        setdeletemode: {
             func: function(that, val){
                 if( that.model.action === "delete"){
                     that.model.action = that.model.lastaction; 
@@ -86,7 +85,7 @@ fluid.defaults("controllertogridmapper", {
             },
             args: ["{that}", "{arguments}.0"]
         } ,
-       /*
+        */
        gridaction: { 
            func: function(that, cell){
                if(that.model.mode = "grid") that.gridmapping(cell);
@@ -94,7 +93,6 @@ fluid.defaults("controllertogridmapper", {
            },
            args: ["{that}"],
        },
-       */
     },
     invokers: {
         addsequence: {
@@ -156,75 +154,91 @@ adam.pushState.addsequence = function(that, startpos, endpos){
     adam.grid.addsequence();
 };
 
-
+///////  abstrsact to only define grid ragions
 adam.midi.push.gridNoteOn = function(that, msg){
-                if (msg.note < 30){
-                    that.events.knobtouched.fire(msg);
-                    return;
-                } 
+    if (msg.note < 30){
+        that.events.knobtouched.fire(msg);
+        return;
+    } 
 
-                var pos = pushNotesToGrid(msg);
+    var pos = pushNotesToGrid(msg);
 
-                ///TODO: decouple message from mapping to sequence adding
-                // define a region 
-                if (that.options.notedown !== undefined && that.options.notedown !== msg.note){
+    ///TODO: decouple message from mapping to sequence adding
+    // define a region 
+    if (that.options.notedown !== undefined && that.options.notedown !== msg.note){
 
-                    var startpoint, endpoint; 
-                    if (msg.note < that.options.notedown){
-                        startpoint = pushNotesToGrid (msg);
-                        endpoint = pushNotesToGrid (that.options.notedown);
-                    }else{
-                        endpoint = pushNotesToGrid (msg);
-                        startpoint = pushNotesToGrid (that.options.notedown);
-                    };
+        var startpoint, endpoint; 
+        if (msg.note < that.options.notedown){
+            startpoint = pushNotesToGrid (msg);
+            endpoint = pushNotesToGrid (that.options.notedown);
+        }else{
+            endpoint = pushNotesToGrid (msg);
+            startpoint = pushNotesToGrid (that.options.notedown);
+        };
 
+        // todo better payload additions 
+        var stepz = [];
+        var beats = endpoint.row - startpoint.row + 1;
+        //console.log(endpoint.row + ",", + startpoint.row);
 
-                    // todo better payload additions 
-                    var stepz = [];
-                    var beats = endpoint.row - startpoint.row + 1;
-                    //console.log(endpoint.row + ",", + startpoint.row);
+        for (var r = startpoint.row; r <= endpoint.row; r++){
+            if(endpoint.row !== startpoint.row){ 
+                stepz.push([]);// mutli beat row
+            }
+            for (var c = startpoint.column; c <= endpoint.column; c++){
+                var payload = {"func": "trig", "args": 1000};
+                payload.location = {row: r, column: c}; 
+                //thegrid.addcell(payload.location); // bug?
 
-                    for (var r = startpoint.row; r <= endpoint.row; r++){
-                        if(endpoint.row !== startpoint.row){ 
-                            stepz.push([]);// mutli beat row
-                        }
-                        for (var c = startpoint.column; c <= endpoint.column; c++){
-                            var payload = {"func": "trig", "args": 1000};
-                            payload.location = {row: r, column: c}; 
-                            //thegrid.addcell(payload.location); // bug?
-
-                            if(endpoint.row === startpoint.row){
-                                stepz.push(payload); // single beat sequence 
-                            }else{
-                                
-                                stepz[r-startpoint.row].push(payload); //multi beat sequence
-                            }
-                            that.writePad(r, c);
-                        }
-                    }
-                    
-                    addsequence(stepz);
-
-                    that.options.notedown = undefined;
+                if(endpoint.row === startpoint.row){
+                    stepz.push(payload); // single beat sequence 
                 }else{
 
-                    that.options.notedown = msg.note;
-                };
-            };
- 
-adam.midi.push.gridNoteOff = function(that, msg){
-                if (msg.note < 30){
-                    that.events.knobtouched.fire(msg);
-                    return;
-                } 
-
-                if (msg.note === that.options.notedown){
-                    var pos = pushNotesToGrid(msg);
-
-                    /// TODO abstract // define region and fire event
-                    var payload= {"func": "trig", "args": 200};
-                    payload.location = pos;
-                    addsequence([payload]);
+                    stepz[r-startpoint.row].push(payload); //multi beat sequence
                 }
-                that.options.notedown = undefined;
-            };
+                that.push.padWrite(r, c);
+            }
+        }
+
+        that.addsequence(stepz);
+
+        that.options.notedown = undefined;
+    }else{
+
+        that.options.notedown = msg.note;
+    };
+};
+
+adam.midi.push.gridNoteOff = function(that, msg){
+    if (msg.note < 30){
+        that.events.knobtouched.fire(msg);
+        return;
+    } 
+
+    if (msg.note === that.options.notedown){
+        var pos = pushNotesToGrid(msg);
+
+        /// TODO abstract // define region and fire event
+        var payload= {"func": "trig", "args": 200};
+        payload.location = pos;
+        that.addsequence([payload]);
+    }
+    that.options.notedown = undefined;
+};
+
+function pushNotesToGrid(msg){
+    var notenumber; 
+    if (typeof msg === "number")
+        notenumber = msg;
+    else
+        notenumber = msg.note;
+
+    return ({ 
+        row: Math.floor((notenumber - 36) / 8),
+        column: (notenumber-36) % 8 
+    });
+};
+
+function pushKnobToMapping(msg, stepsize){
+    if(msg.value){return msg.value * stepsize};
+};

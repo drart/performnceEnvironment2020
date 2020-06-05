@@ -71,6 +71,17 @@ fluid.defaults("adam.midi.push", {
         padPushed: null,
         pedal1: null,
         pedal2: null,
+        knob1: null,
+        knob2: null,
+        knob3: null,
+        knob4: null,
+        knob5: null,
+        knob6: null, 
+        knob7: null,
+        knob8: null,
+        tempoKnob: null,
+        swingKnob: null,
+        volumeKnob: null
     },
     invokers: {
         /*
@@ -93,6 +104,10 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.padWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
+        padClearAll: {
+            funcName: "adam.midi.push.padClearAll",
+            args: ["{that}"]
+        },
         buttonWrite: {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
@@ -101,9 +116,10 @@ fluid.defaults("adam.midi.push", {
     listeners : {
         onReady: { 
             func: function(that){
-                    //that.clearLCD();
-                    //that.writeLCD("Made by Ableton", 1, 27);
-                    //that.writeLCD("Powered by Flocking.js", 2, 24);
+                    that.lcdClear();
+                    that.lcdWrite("Made by Ableton", 1, 27);
+                    that.lcdWrite("Powered by Flocking.js", 2, 24);
+                    that.padClearAll();
                     //that.applier.change("lcdline1", "Made by Ableton"); 
                     //that.applier.change("lcdline2", "Powered by Flocking.js"); 
                     //that.applier.change("lcdline3", "Powered by Flocking.js"); 
@@ -163,15 +179,22 @@ adam.midi.push.padWrite = function(that, x = 0, y = 0, colour = 1){
     that.send(midimessage); 
 };
 
+adam.midi.push.padClearAll = function(that){
+    for( let x = 0; x < 8; x++){
+        for( let y = 0; y < 8; y++){
+            that.padWrite(x, y, 0);
+        }
+    }
+};
+
 ///// TODO FIX THIS 
-adam.midi.push.buttonWrite = function (that, button, action){
+adam.midi.push.buttonWrite = function (that, button, colour){
     var midimessage = {type: "noteOn", channel: 0, note: 10, velocity: colour}
     midimessage.note = button; // ?
     that.send(midimessage);
 };
 
 adam.midi.push.noteToEvents = function(that, msg){
-    console.log(msg);
     if (msg.note < 20){
         that.events.knobTouched.fire(msg); // unroll this to knob and value?
     }else{

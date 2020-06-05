@@ -48,13 +48,13 @@ activeposition: null,
 fluid.defaults("adam.grid", {
     gradeNames: "fluid.modelComponent",
     model: {
-        allowoverflow: false, // zones must be unique
+        allowoverflow: false, // ie: zones must be unique
         grid: [], // 0-64
         selectedcell: null, // maybe? 
+        rows: 8,
+        columns: 8,
     },
-    rows: 8,
-    columns: 8,
-    modelListeners: {}, //////  THIS!!!!
+    modelListeners: {}, 
     invokers: {
         /*
            addzone: { 
@@ -97,19 +97,17 @@ fluid.defaults("adam.grid", {
             },
             args: ["{that}", "{arguments}.0"]
         },
-        /*
-           checkzoneoverlap:{ /// TODO 
+       checkzoneoverlap:{ /// TODO 
            func: function(that, startpos, endpos){
-           for(var r = startpos.row; x < endpos.row+1; r++){ //// BUG
-           for (var c = startpos.column; c < endpos.column+1; c++){
-           if (!that.checkcelloverlap({row:r, column: c})) return false;
-           }
-           }
-           return true;
+               for(var r = startpos.row; x < endpos.row+1; r++){ //// BUG
+                   for (var c = startpos.column; c < endpos.column+1; c++){
+                       if (!that.checkcelloverlap({row:r, column: c})) return false;
+                   }
+               }
+               return true;
            },
            args: ["{that}", "{arguments}.0", "{arguments}.1"]
-           },
-           */
+       },
         checkcelloverlap: {
             func: function(that, cell){
                 if( that.model.grid[cell.row*that.options.columns + cell.column] === undefined ){ 
@@ -201,7 +199,7 @@ fluid.defaults("adam.sequence", {
                     return -1;
                 }
 
-                // 480 is divisible by many divisions up to 20 without being too unwielding for the clock
+                // 480 is divisible by many divisions up to 20 without being too unwieldly for the clock
                 // TODO: should this come from the sequencer somehow?
                 const beatlength = 480;  
                 if( Array.isArray(arr[0])){ // multibeat sequence
@@ -346,7 +344,7 @@ fluid.defaults("adam.sequencer",{
                 that.model.bpm = bpm;
                 that.set("pulse.freq", that.model.bpm/60);
             },
-            args: ["{that}", "{argumentss}.0"]
+            args: ["{that}", "{arguments}.0"]
         },
         getsequence: { 
             func: function(that, seq){
