@@ -2,7 +2,7 @@
 // grid model
 //------------------------------------------
 /*
-   fluid.defaults("adam.grid", {
+fluid.defaults("adam.testgrid", {
    gradeNames:  "fluid.modelComponent",
    numPads: 64,
    model: {
@@ -15,34 +15,25 @@
 },
 modelListeners: {
 "pads.*": {
-namespace: "sendMIDIPadState",
-funcName: "adam.padStateChange", // connect this to adam.push?
-args: ["{change}.path.0", "{change}.value"]
-}
-}
+    namespace: "sendMIDIPadState",
+    funcName: "adam.padStateChange", // connect this to adam.push?
+    args: ["{change}.path.0", "{change}.value"]
+    }
+    }
 });
 
 adam.grid.initEmptyGrid = function (numPads) {
-var pads = [];
-for (var i = 0; i < numPads; i++) {
-pads[i] = false;
-}
-// return pads;  // ??
+    var pads = [];
+    for (var i = 0; i < numPads; i++) {
+    pads[i] = false;
+    }
+    // return pads;  // ??
 };
 
 adam.grid.padStateChange = function (padIdx, value) {
-adam.push.sendMidiForStateChange(padIdx, value);
+    adam.push.sendMidiForStateChange(padIdx, value);
 };
-
-fluid.defaults("adam.gridzone",{
-gradeNames: "fluid.modelComponent",
-model: {
-gridposition: null,
-activeposition: null,
-},
-});
 */
-
 
 // TODO fix all of the 8 magic numbers
 fluid.defaults("adam.grid", {
@@ -54,7 +45,11 @@ fluid.defaults("adam.grid", {
         rows: 8,
         columns: 8,
     },
-    modelListeners: {}, 
+    modelListeners: {
+    }, 
+    events: {
+        gridChanged: null
+    },
     invokers: {
         /*
            addzone: { 
@@ -76,8 +71,9 @@ fluid.defaults("adam.grid", {
         },
         */
         addcell: { // todo fix to grid size?
-            func: function(that, cell, ref = true){
-                that.model.grid[cell.row*8 + cell.column] = ref;
+            func: function(that, pos, ref = true){
+                let oldgrid = that.model.grid;
+                that.model.grid[pos.row*8 + pos.column] = ref;
             },
             args: ["{that}", "{arguments}.0", "{arguments}.1"]
         },
@@ -131,9 +127,10 @@ fluid.defaults("adam.grid", {
                 for (var i = 0; i < (that.model.rows * that.model.columns); i++){
                     that.model.grid[i] = undefined;
                 }
+                that.model.oldgrid = that.model.grid;
             },
             args: ["{that}"]
-        }
+        },
     }
 });
 
@@ -258,7 +255,7 @@ fluid.defaults("adam.sequence", {
    */
 
 fluid.defaults("adam.sequencer",{
-    gradeNames: "flock.synth", /// modelComponent?
+    gradeNames: ["flock.synth", "fluid.modelComponent"],
     model: {
         tempo: 60,
         beatlength: 480,
@@ -271,6 +268,9 @@ fluid.defaults("adam.sequencer",{
             type: "adam.grid",
         }
     },
+    /*
+    subcomponents: {},
+     */
     synthDef: {
         ugen: "flock.ugen.triggerCallback",
         trigger: {
@@ -282,7 +282,7 @@ fluid.defaults("adam.sequencer",{
             callback: {
                 func: function(that){
                     if (that.model.ticktime % that.model.beatlength === 0){
-                        console.log("beat");
+                        console.log(that.model.ticktime);
                     }
                     for (let s of that.model.sequences){
                         // TODO should ticktime be kept in the loop instead of the sequencer? 
@@ -296,13 +296,14 @@ fluid.defaults("adam.sequencer",{
                         };
                         */
 
-
                         if ( s.model.steps[thetick] !== undefined && s.model.mute === false){
                             const payload = s.model.steps[thetick];
                             const target = s.model.target;
 
                             if(target && target.loop !== false){
 
+
+                                /*
                                 if(payload.location){
                                     if (ccc){
                                         ccc.push.writePad(payload.location.row, payload.location.column, 30) 
@@ -314,6 +315,7 @@ fluid.defaults("adam.sequencer",{
                                     }
 
                                 };
+                                */
 
 
                                 if(payload.func){
@@ -339,7 +341,7 @@ fluid.defaults("adam.sequencer",{
         resync: null,
     },
     invokers: {
-        setbpm: {
+        setTempo: {
             func: function(that, bpm){
                 that.model.bpm = bpm;
                 that.set("pulse.freq", that.model.bpm/60);
@@ -372,7 +374,7 @@ fluid.defaults("adam.sequencer",{
                             that.model.selectedsequence = that.thegrid.getcell( seq.model.steps[key].location );
                             that.thegrid.model.selectedcell =  seq.model.steps[key].location ;
 
-                            ccc.events.selectcell.fire(that.thegrid.model.selectedcell);
+                            //ccc.events.selectcell.fire(that.thegrid.model.selectedcell);
                             console.log(that.thegrid.model.selectedcell);
 
                             if ( ccc.model.action === "delete"){ 
@@ -416,6 +418,7 @@ fluid.defaults("adam.sequencer",{
                     that.model.sequences.splice( that.model.sequences.indexOf(deletedsequence), 1);
                 }
 
+                /*
                 // remove from grid
                 if ( deletedsequence !== undefined ){
                     var keys = Object.keys(deletedsequence.model.steps);
@@ -430,6 +433,7 @@ fluid.defaults("adam.sequencer",{
                         }
                     }
                 }
+                */
             },
             args: ["{that}", "{arguments}.0"]
         },

@@ -11,42 +11,16 @@
         </script>
     </head>
     <body>
-
-
-    <!--script src="synths.js"></script-->
     <script src="sequencer.js"></script>
     <script src="enveloper.js"></script>
     <script src="lib/artlib.js/adam.js"></script>
-    <script>
-        var a = adam.sequencer();
-        //var selectedsynth = adam.sawsynth; // 
-
-    </script>
     <script src="abletonpush/ableton-push-midi.js"></script>
     <script src="abletonpush/ableton-push-grid-mappings.js"></script>
     <script>
+        var a = adam.sequencer();
+        //var selectedsynth = adam.sawsynth;
         var ccc = controllertogridmapper();
-        //var pushcontroller = adam.midi.push();
-    </script>
-
-    <script>
-
-        fluid.defaults( "adam.gridquencer", {
-            gradeNames: "adam.sequencer",
-            model :{}, 
-            subcomponents: {
-                grid: "adam.thegrid"
-            },
-        });
-
-        fluid.defaults( "adam.gridsynth", {
-            gradeNames: "fluid.modelComponent",
-            model : {
-                synth: null,
-                payloads:  [] // available payloads per step
-            }
-        });
-
+        var gridquencer = adam.sequencer();
     </script>
 
     <ul>

@@ -25,7 +25,6 @@ fluid.defaults("adam.midi.push", {
         lcdline3: "          Made by Ableton",
         lcdline4: "          Powered by Flocking.js",
         //knobs: [],
-        knob1: 100, // change this to an object in the future?
         /*
         knob2: { // is this better?
             min: 0,
@@ -34,6 +33,7 @@ fluid.defaults("adam.midi.push", {
             inc: 1
         },
         */
+        knob1: 100, 
         knob2: 100,
         knob3: 100,
         knob4: 100,
@@ -48,7 +48,8 @@ fluid.defaults("adam.midi.push", {
         pedal2inverse : false,
     },
     modelListeners: {
-        lcdline1: { // wait until midi initializes?
+        // wait until midi initializes?
+        lcdline1: { 
             funcName: "adam.midi.push.lcdWrite",
             args : ["{that}", "{change}.value" , 0]
         },
@@ -69,6 +70,7 @@ fluid.defaults("adam.midi.push", {
         knobTouched: null,
         knobReleased: null,
         padPushed: null,
+        padReleased: null,
         pedal1: null,
         pedal2: null,
         knob1: null,
@@ -117,8 +119,8 @@ fluid.defaults("adam.midi.push", {
         onReady: { 
             func: function(that){
                     that.lcdClear();
-                    that.lcdWrite("Made by Ableton", 1, 27);
-                    that.lcdWrite("Powered by Flocking.js", 2, 24);
+                    //that.lcdWrite("Made by Ableton", 1, 27);
+                    //that.lcdWrite("Powered by Flocking.js", 2, 24);
                     that.padClearAll();
                     //that.applier.change("lcdline1", "Made by Ableton"); 
                     //that.applier.change("lcdline2", "Powered by Flocking.js"); 
@@ -128,6 +130,10 @@ fluid.defaults("adam.midi.push", {
             args: ["{that}"]
         },
         noteOn : {
+            funcName: "adam.midi.push.noteToEvents",
+            args: ["{that}", "{arguments}.0"]
+        },
+        noteOff: {
             funcName: "adam.midi.push.noteToEvents",
             args: ["{that}", "{arguments}.0"]
         },
@@ -199,9 +205,14 @@ adam.midi.push.noteToEvents = function(that, msg){
         that.events.knobTouched.fire(msg); // unroll this to knob and value?
     }else{
         var notenumber = msg.note;
-        var row = Math.floor((notenumber - 36) / 8);
-        var column = (notenumber-36) % 8;
-        that.events.padPushed.fire( row, column, msg.velocity);
+        var r = Math.floor((notenumber - 36) / 8);
+        var c = (notenumber-36) % 8;
+        var pos = { column : c, row: r };
+        if( msg.velocity > 0){
+            that.events.padPushed.fire( pos, msg.velocity );
+        }else{
+            that.events.padReleased.fire( pos, msg.velocity );
+        }
     } 
 };
 
@@ -210,6 +221,7 @@ adam.midi.push.controlToEvents = function(that, msg){
     if (msg.number > 70 && msg.number < 79){
         that.model["knob" + (msg.number-70)] += msg.value > 64 ? - (128-msg.value) : msg.value;
         that.model["knob" + (msg.number-70)] = adam.clamp( that.model["knob" + (msg.number-70)], 0, 100 );
+
         that.events["knob" + (msg.number-70)].fire();
     }
     if (msg.number === 79){

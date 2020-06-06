@@ -7,8 +7,6 @@ fluid.defaults("gridtosequencermapper", {
         selectedcell: undefined,
         lastselectedcell: undefined,
     },
-    components: { 
-    },
     events: {
         removesequence: null,
         selectcell: null,
@@ -74,42 +72,7 @@ fluid.defaults("gridtosequencermapper", {
 
 
 
-//------------------------------------------
-// grid to push mappings
-//------------------------------------------
-fluid.defaults("adam.pushState", {
-    gradeNames: "fluid.modelComponent",
-    model: {
-        mode: "grid", // envelope, sequence, payload
-        sequencePads: {
-            "0": {
-                enabled: false,
-                colour: 98
-            }
-        },
-        samplePads: {
-            "0": {
-                enabled: true
-            }
-        }
-    },
-    modelListeners:{},
-    listeners: {
-        addsequence: {
-            funcName: "adam.pushState.addsequence",
-            args: ["{that}", "{arguments}.0", "{arguments}.1"]
-        } // add sequence to sequencer 
-    },
-    invokers: {}
-});
-
-
-adam.pushState.addsequence = function(that, startpos, endpos){
-    adam.grid.addsequence();
-};
-
-
-
+/*
 
 function addsequence(stepz, pos){
     var s = adam.sequence();
@@ -120,3 +83,4 @@ function addsequence(stepz, pos){
         a.selectsequence(s); 
     }
 };
+*/
