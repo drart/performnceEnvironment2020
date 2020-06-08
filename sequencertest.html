@@ -1,7 +1,6 @@
 <HTML>
     <head>
         <script src="node_modules/flocking/dist/flocking-all.js"></script>
-        <!--script src="../lib/artlib/adam.js"></script-->
         <script>
             flock.init({
                 //chans:4, 
@@ -16,15 +15,13 @@
     <script src="lib/artlib.js/adam.js"></script>
     <script src="abletonpush/ableton-push-midi.js"></script>
     <script src="abletonpush/ableton-push-grid-mappings.js"></script>
+    <script src="abletonpush/ableton-push-sequencer-mappings.js"></script>
     <script>
-        var a = adam.sequencer();
-        //var selectedsynth = adam.sawsynth;
-        var ccc = controllertogridmapper();
-        var gridquencer = adam.sequencer();
+        var gridquencer = adam.pushquencer();
     </script>
 
     <ul>
-        <li> change tempo</li>
+        <li><s>change tempo</s></li>
         <li> selected sequence puts payloads on top knobs? </li>
         <li> make an api doc with list of functions and inputs</li>
         <li> think through tracks and sequences and instruments </li>

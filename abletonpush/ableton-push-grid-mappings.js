@@ -1,6 +1,6 @@
 //// todo 
 // writes to hardward should instead call to state and let changeappliers work
-fluid.defaults("controllertogridmapper", {
+fluid.defaults("adam.pushgridmapper", {
     gradeNames: ["fluid.modelComponent"], // push controller
     model: {
         mode: "sequence", // notes, envelope
@@ -24,12 +24,14 @@ fluid.defaults("controllertogridmapper", {
         gridaction: null
     },
     notedown: undefined,
+    /*
     modelListeners: {
         "{sequencergrid}.model.grid": {
             func: console.log,
             args: 'alkfjdakjfkldflajdfkjadkfjdf'
         },
     },
+    */
     listeners: {
         "{push}.events.padPushed": {
             funcName: "adam.midi.push.gridNoteOn",
@@ -114,10 +116,6 @@ fluid.defaults("controllertogridmapper", {
        */
     },
     invokers: {
-        addsequence: {
-            func: function(that){},
-            args: ["{that}"]
-        },
         /*
         gridmapping: {
             func: function(that, region){
@@ -141,8 +139,6 @@ fluid.defaults("controllertogridmapper", {
 ///////  abstrsact to only define grid ragions
 adam.midi.push.gridNoteOn = function(that, pos, velocity){
 
-    console.log(pos);
-    console.log(that.options.notedown);
 
     ///TODO: decouple message from mapping to sequence adding
     // todo check for overlapping
@@ -161,16 +157,14 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
         // todo better payload additions 
         var stepz = [];
         var beats = endpoint.row - startpoint.row + 1;
-        //console.log(endpoint.row + ",", + startpoint.row);
 
         for (var r = startpoint.row; r <= endpoint.row; r++){
             if(endpoint.row !== startpoint.row){ 
                 stepz.push([]);// mutli beat row
             }
-            for (var c = startpoint.column; c <= endpoint.column; c++){
-                var payload = {"func": "trig", "args": 1000};
+            for (let c = startpoint.column; c <= endpoint.column; c++){
+                let payload = {"func": "trig", "args": 1000};
                 payload.location = {row: r, column: c}; 
-                //thegrid.addcell(payload.location); // bug?
 
                 if(endpoint.row === startpoint.row){
                     stepz.push(payload); // single beat sequence 
@@ -178,31 +172,24 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
 
                     stepz[r-startpoint.row].push(payload); //multi beat sequence
                 }
-                //////// THIS THIS THIS
-                //that.push.padWrite(r, c);
-                //console.log(r,c);
-                let cellpos = {row: r, column: c};
             
-                that.sequencergrid.addcell(cellpos,payload);
+                that.sequencergrid.addcell(payload.location, payload);
             }
         }
-        console.log(that.sequencergrid.model.grid);
+        //console.log(that.sequencergrid.model.grid);
 
-        that.sequencergrid.events.gridChanged.fire();
+        that.sequencergrid.events.gridChanged.fire( stepz );
 
-        that.addsequence(stepz);
+        /////TODO  this is bad. 
+        // that.addsequence(stepz);
 
         that.options.notedown = undefined;
+
     }else{
 
         that.options.notedown = pos;
     };
 };
-
-// https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
-function testTwoObjects(object1, object2){
-    return Object.keys(object1).every((key) =>  object1[key] === object2[key]);
-}
 
 adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
@@ -213,10 +200,12 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
         /// TODO abstract // define region and fire event
         var payload= {"func": "trig", "args": 200};
         payload.location = pos;
-        that.addsequence([payload]);
+
+        stepz = [payload];
 
         that.sequencergrid.addcell(pos, payload);
-        that.sequencergrid.events.gridChanged.fire();
+        that.sequencergrid.events.gridChanged.fire(stepz);
+
     }else{
         console.log('something went wrong');
     }
@@ -224,6 +213,11 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
     that.options.notedown = undefined;
 };
 
+
+// https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+function testTwoObjects(object1, object2){
+    return Object.keys(object1).every((key) =>  object1[key] === object2[key]);
+}
 
 //------------------------------------------
 // grid to push mappings

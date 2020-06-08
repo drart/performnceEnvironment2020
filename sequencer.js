@@ -257,7 +257,7 @@ fluid.defaults("adam.sequence", {
 fluid.defaults("adam.sequencer",{
     gradeNames: ["flock.synth", "fluid.modelComponent"],
     model: {
-        tempo: 60,
+        bpm: 60,
         beatlength: 480,
         ticktime: 0,
         sequences: [],
@@ -268,9 +268,6 @@ fluid.defaults("adam.sequencer",{
             type: "adam.grid",
         }
     },
-    /*
-    subcomponents: {},
-     */
     synthDef: {
         ugen: "flock.ugen.triggerCallback",
         trigger: {
@@ -317,6 +314,9 @@ fluid.defaults("adam.sequencer",{
                                 };
                                 */
 
+                                if(that.sequencergrid !== undefined){
+                                    console.log('alkjfkljadkjdfjadfjkldjflkadsf');
+                                }
 
                                 if(payload.func){
                                     target[payload.func](payload.args);
@@ -344,7 +344,7 @@ fluid.defaults("adam.sequencer",{
         setTempo: {
             func: function(that, bpm){
                 that.model.bpm = bpm;
-                that.set("pulse.freq", that.model.bpm/60);
+                that.set("pulse.freq", that.model.bpm/60 * that.model.beatlength);
             },
             args: ["{that}", "{arguments}.0"]
         },
@@ -368,6 +368,7 @@ fluid.defaults("adam.sequencer",{
                     return;
                 }else{
                     // check for overlap
+                    // todo fix the checkcelloverlap function --- do all calls to location use the wrong model?
                     for( key of Object.keys(seq.model.steps)){
                         if( that.thegrid.checkcelloverlap( seq.model.steps[key].location )){
                             console.log('grid overlap. not added.');
@@ -377,11 +378,13 @@ fluid.defaults("adam.sequencer",{
                             //ccc.events.selectcell.fire(that.thegrid.model.selectedcell);
                             console.log(that.thegrid.model.selectedcell);
 
+                            /*
                             if ( ccc.model.action === "delete"){ 
                                 console.log('deleting');
                                 console.log(that.model.selectedsequence.model.steps);
                                 that.removesequence( that.model.selectedsequence ); 
                             }
+                            */
 
                             return;
                         };
@@ -390,7 +393,7 @@ fluid.defaults("adam.sequencer",{
                     for( key of Object.keys(seq.model.steps)){
                         let loc = seq.model.steps[key].location;
                         that.thegrid.addcell( loc, seq );
-                        ccc.push.writePad( loc.row, loc.column);// TODO fire sequence added event
+                        //ccc.push.writePad( loc.row, loc.column);// TODO fire sequence added event
                     }
                 };
 
