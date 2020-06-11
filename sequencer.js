@@ -42,9 +42,9 @@ fluid.defaults("adam.grid", {
         allowoverflow: false, // ie: zones must be unique
         grid: [], // 0-64
         selectedcell: null, // maybe? 
-        rows: 8,
-        columns: 8,
     },
+    rows: 8,
+    columns: 8,
     modelListeners: {
     }, 
     events: {
@@ -104,7 +104,7 @@ fluid.defaults("adam.grid", {
            },
            args: ["{that}", "{arguments}.0", "{arguments}.1"]
        },
-        checkcelloverlap: {
+       checkcelloverlap: {
             func: function(that, cell){
                 if( that.model.grid[cell.row*that.options.columns + cell.column] === undefined ){ 
                     return false;
@@ -300,22 +300,12 @@ fluid.defaults("adam.sequencer",{
                             if(target && target.loop !== false){
 
 
-                                /*
-                                if(payload.location){
-                                    if (ccc){
-                                        ccc.push.writePad(payload.location.row, payload.location.column, 30) 
-
-                                            if(s.model.previousstep){
-                                                // TODO better reference to the hardware or display level
-                                                ccc.push.writePad(s.model.previousstep.location.row, s.model.previousstep.location.column);// writes default colour
-                                            }
-                                    }
-
-                                };
-                                */
-
+                                // todo if grid exisits then upadte it with payload location to be highlighted? 
                                 if(that.sequencergrid !== undefined){
-                                    console.log('alkjfkljadkjdfjadfjkldjflkadsf');
+                                    that.push.padWrite( payload.location.row, payload.location.column, 30);
+                                    if (s.model.previousstep){
+                                        that.push.padWrite( s.model.previousstep.location.row, s.model.previousstep.location.column );
+                                    }
                                 }
 
                                 if(payload.func){
@@ -365,19 +355,20 @@ fluid.defaults("adam.sequencer",{
             func: function(that, seq, setselected = false){
                 if(that.thegrid === null){
                     console.log('null grid');
-                    return;
+                    return false;
                 }else{
                     // check for overlap
                     // todo fix the checkcelloverlap function --- do all calls to location use the wrong model?
                     for( key of Object.keys(seq.model.steps)){
                         if( that.thegrid.checkcelloverlap( seq.model.steps[key].location )){
-                            console.log('grid overlap. not added.');
+                            console.log('grid overlap.');
+
                             that.model.selectedsequence = that.thegrid.getcell( seq.model.steps[key].location );
                             that.thegrid.model.selectedcell =  seq.model.steps[key].location ;
 
-                            //ccc.events.selectcell.fire(that.thegrid.model.selectedcell);
-                            console.log(that.thegrid.model.selectedcell);
+                            console.log("selected cell is " + that.thegrid.model.selectedcell);
 
+                            //ccc.events.selectcell.fire(that.thegrid.model.selectedcell);
                             /*
                             if ( ccc.model.action === "delete"){ 
                                 console.log('deleting');
@@ -386,7 +377,7 @@ fluid.defaults("adam.sequencer",{
                             }
                             */
 
-                            return;
+                            return false;
                         };
                     }
                     // if no overlap put into grid with reference to sequence and update hardware
@@ -402,6 +393,7 @@ fluid.defaults("adam.sequencer",{
                 //seq.model.currentstep = 0;
                 if(setselected){that.model.selectedsequence = seq };
                 that.model.sequences.push(seq);
+                return true;
             },
             args: ["{that}", "{arguments}.0"]
         },

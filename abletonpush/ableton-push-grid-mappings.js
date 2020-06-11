@@ -1,7 +1,7 @@
 //// todo 
 // writes to hardward should instead call to state and let changeappliers work
 fluid.defaults("adam.pushgridmapper", {
-    gradeNames: ["fluid.modelComponent"], // push controller
+    gradeNames: ["fluid.modelComponent"], 
     model: {
         mode: "sequence", // notes, envelope
         action: "add", // delete, mute, select, solo, edit, ammend
@@ -18,20 +18,18 @@ fluid.defaults("adam.pushgridmapper", {
         }
     },
     events: {
-        removesequence: null,
+        regionCreated: null,
         selectcell: null,
-        setcellpayload: null,
         gridaction: null
     },
     notedown: undefined,
-    /*
     modelListeners: {
         "{sequencergrid}.model.grid": {
             func: console.log,
+            priority: "last",
             args: 'alkfjdakjfkldflajdfkjadkfjdf'
         },
     },
-    */
     listeners: {
         "{push}.events.padPushed": {
             funcName: "adam.midi.push.gridNoteOn",
@@ -42,12 +40,13 @@ fluid.defaults("adam.pushgridmapper", {
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2", ]
         },
         "{sequencergrid}.events.gridChanged": {
+            priority: "last",
             func: function(that){
                 for(let r = 0; r < 8; r++){
                     for (let c = 0; c < 8 ; c++){
                         if ( that.sequencergrid.model.grid[r * 8 + c] !== undefined ){
                             that.push.padWrite(r, c);
-                        }else{
+                       }else{
                             that.push.padWrite(r, c, 0);
                         }
                     }
@@ -163,7 +162,8 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
                 stepz.push([]);// mutli beat row
             }
             for (let c = startpoint.column; c <= endpoint.column; c++){
-                let payload = {"func": "trig", "args": 1000};
+                //let payload = {"func": "trig", "args": 1000};
+                let payload = {};
                 payload.location = {row: r, column: c}; 
 
                 if(endpoint.row === startpoint.row){
@@ -172,16 +172,10 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
 
                     stepz[r-startpoint.row].push(payload); //multi beat sequence
                 }
-            
-                that.sequencergrid.addcell(payload.location, payload);
             }
         }
-        //console.log(that.sequencergrid.model.grid);
 
-        that.sequencergrid.events.gridChanged.fire( stepz );
-
-        /////TODO  this is bad. 
-        // that.addsequence(stepz);
+        that.events.regionCreated.fire( stepz );
 
         that.options.notedown = undefined;
 
@@ -197,14 +191,12 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     if ( testTwoObjects(pos, that.options.notedown) ){ // should always be ture
 
-        /// TODO abstract // define region and fire event
-        var payload= {"func": "trig", "args": 200};
+        let payload = {};
         payload.location = pos;
 
         stepz = [payload];
 
-        that.sequencergrid.addcell(pos, payload);
-        that.sequencergrid.events.gridChanged.fire(stepz);
+        that.events.regionCreated.fire( stepz );
 
     }else{
         console.log('something went wrong');

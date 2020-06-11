@@ -22,8 +22,8 @@ fluid.defaults("adam.midi.push", {
     model : {
         lcdline1: "",
         lcdline2: "",
-        lcdline3: "          Made by Ableton",
-        lcdline4: "          Powered by Flocking.js",
+        lcdline3: "                          Made by Ableton",
+        lcdline4: "                       Powered by Flocking.js",
         //knobs: [],
         /*
         knob2: { // is this better?
@@ -46,6 +46,16 @@ fluid.defaults("adam.midi.push", {
         swingKnob: 100,
         pedal1inverse : false,
         pedal2inverse : false,
+        padColours: {
+            off: 0,
+            selected: 1,
+            highlighted: 30
+        },
+    },
+    components: {
+        padGrid : {
+            type: "adam.grid"
+        }
     },
     modelListeners: {
         // wait until midi initializes?
@@ -86,9 +96,7 @@ fluid.defaults("adam.midi.push", {
         volumeKnob: null
     },
     invokers: {
-        /*
-         * LCD Handlers
-         */
+        // LCD Handlers
         lcdClearLine: {
             funcName: "adam.midi.push.lcdClearLine",
             args: ["{that}", "{arguments}.0"]
@@ -101,6 +109,10 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
+        lcdRefresh: {
+            funcName: "adam.midi.push.lcdRefresh",
+            args: "{that}"
+        },
         // Pad and button handlers
         padWrite: {
             funcName: "adam.midi.push.padWrite",
@@ -110,22 +122,20 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.padClearAll",
             args: ["{that}"]
         },
+        padSet: {
+            funcName: "adam.midi.push.gridUpdate",
+            args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
+        },
         buttonWrite: {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
-        }
+        },
     },
     listeners : {
         onReady: { 
             func: function(that){
-                    that.lcdClear();
-                    //that.lcdWrite("Made by Ableton", 1, 27);
-                    //that.lcdWrite("Powered by Flocking.js", 2, 24);
+                    that.lcdRefresh();
                     that.padClearAll();
-                    //that.applier.change("lcdline1", "Made by Ableton"); 
-                    //that.applier.change("lcdline2", "Powered by Flocking.js"); 
-                    //that.applier.change("lcdline3", "Powered by Flocking.js"); 
-                    //that.applier.change("lcdline4", "Powered by Flocking.js"); 
             },
             args: ["{that}"]
         },
@@ -167,6 +177,14 @@ adam.midi.push.lcdWrite = function(that, thestring="test", line = 0, offset = 0 
     return(mysysexmessage);
 };
 
+
+adam.midi.push.lcdRefresh = function (that){
+    that.lcdWrite( that.model.lcdline1, 0);
+    that.lcdWrite( that.model.lcdline2, 1);
+    that.lcdWrite( that.model.lcdline3, 2);
+    that.lcdWrite( that.model.lcdline4, 3);
+};
+
 adam.midi.push.lcdClearLine = function (that, l = 0){
     if (typeof l === "number" && l < 4 && l >= 0) 
         that.sendRaw([240,71,127,21,28+l,0,0,247]); 
@@ -192,6 +210,12 @@ adam.midi.push.padClearAll = function(that){
         }
     }
 };
+
+adam.midi.push.gridUpdate = function(that, loc, colour){
+    console.log(loc);
+};
+
+//adam.midi.push.padRefresh = function(that){};
 
 ///// TODO FIX THIS 
 adam.midi.push.buttonWrite = function (that, button, colour){
