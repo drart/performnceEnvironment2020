@@ -27,10 +27,14 @@ fluid.defaults("adam.pushgridmapper", {
         "{sequencergrid}.model.grid": {
             func: console.log,
             priority: "last",
-            args: 'alkfjdakjfkldflajdfkjadkfjdf'
+            args: 'grid change applier fired'
         },
     },
     listeners: {
+        onCreate: {
+            funcName: "adam.midi.push.knobsToString",
+            args: '{push}'
+        },
         "{push}.events.padPushed": {
             funcName: "adam.midi.push.gridNoteOn",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2", ]
@@ -58,6 +62,39 @@ fluid.defaults("adam.pushgridmapper", {
             func: console.log,
             args: "{push}.model.tempoKnob"
         },
+        "{push}.events.knob1": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob2": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob3": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob4": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob5": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob6": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob7": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+        "{push}.events.knob8": {
+            funcName: "adam.midi.push.knobsToString",
+            args: "{push}"
+       },
+    
     
         /*
         selectcell: {

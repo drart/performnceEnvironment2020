@@ -2,9 +2,6 @@
 // modelize the knobs? val, min, max, inc, stringprepend, stringappend -> pair with the screen?
 //
 fluid.defaults("adam.midi.push", {
-    // ------------------
-    // midi setup
-    // ------------------
     gradeNames: ["flock.midi.connection", "fluid.modelComponent"],
     sysex: true,
     openImmediately: true,
@@ -16,14 +13,11 @@ fluid.defaults("adam.midi.push", {
             name : "Ableton Push User Port"
         }
     },
-    // ------------------
-    // infusion setup
-    // ------------------
     model : {
-        lcdline1: "",
-        lcdline2: "",
-        lcdline3: "                          Made by Ableton",
-        lcdline4: "                       Powered by Flocking.js",
+        lcdline1: ' '.padEnd(68, ' '),
+        lcdline2: ' '.padEnd(68, ' '),
+        lcdline3: 'Made by Ableton'.padStart(41, ' ').padEnd(68, ' '),
+        lcdline4: 'Powered by Flocking.js'.padStart(45, ' ').padEnd(68, ' '),
         //knobs: [],
         /*
         knob2: { // is this better?
@@ -93,7 +87,9 @@ fluid.defaults("adam.midi.push", {
         knob8: null,
         tempoKnob: null,
         swingKnob: null,
-        volumeKnob: null
+        volumeKnob: null,
+        buttonPlayPressed: null,
+        buttonPlayReleased: null,
     },
     invokers: {
         // LCD Handlers
@@ -240,6 +236,30 @@ adam.midi.push.noteToEvents = function(that, msg){
     } 
 };
 
+adam.midi.push.knobsToString = function (that ){
+    let knobstring = '';
+
+    let knob1string = that.model.knob1.toString();
+    knob1string = knob1string.padStart(8 , ' '); 
+    let knob2string = that.model.knob2.toString();
+    knob2string = knob2string.padStart(9 , ' '); 
+    let knob3string = that.model.knob3.toString();
+    knob3string = knob3string.padStart(8 , ' '); 
+    let knob4string = that.model.knob4.toString();
+    knob4string = knob4string.padStart(9 , ' '); 
+    let knob5string = that.model.knob5.toString();
+    knob5string = knob5string.padStart(8 , ' '); 
+    let knob6string = that.model.knob6.toString();
+    knob6string = knob6string.padStart(9 , ' '); 
+    let knob7string = that.model.knob7.toString();
+    knob7string = knob7string.padStart(8 , ' '); 
+    let knob8string = that.model.knob8.toString();
+    knob8string = knob8string.padStart(9 , ' '); 
+
+    knobstring = knob1string + knob2string + knob3string + knob4string + knob5string + knob6string + knob7string + knob8string;
+    that.applier.change('lcdline1', knobstring);
+};
+
 //// TODO Fix with temp value  => change applier?
 adam.midi.push.controlToEvents = function(that, msg){
     if (msg.number > 70 && msg.number < 79){
@@ -280,6 +300,14 @@ adam.midi.push.controlToEvents = function(that, msg){
             that.events.pedal2.fire("down");
         }else{
             that.events.pedal2.fire("up");
+        }
+    }
+    //console.log(msg);
+    if (msg.number === 85){
+        if (msg.value === 127){
+            that.events.buttonPlayPressed.fire();
+        }else{
+            that.events.buttonPlayReleased.fire();
         }
     }
 }; 

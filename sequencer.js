@@ -399,7 +399,17 @@ fluid.defaults("adam.sequencer",{
         },
         popsequence: {
             func: function(that){
-                that.model.sequences.pop();
+                let thesequence = that.model.sequences.pop();
+                if (thesequence === undefined) {
+                    return thesequence;
+                }
+                for ( key in thesequence.model.steps ){
+                    console.log(key);
+                    let step = thesequence.model.steps[key];
+                    that.thegrid.removecell( step.location );
+                }
+                return thesequence;
+                /// thegrid.events.gridChanged.fire(); // ???
             },
             args: "{that}"
         },
