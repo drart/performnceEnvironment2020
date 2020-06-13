@@ -33,7 +33,7 @@ fluid.defaults("performer.app", {
                         expander: {
                             funcName: "fluid.stringTemplate",
                             args: [
-                                "%url/sequencertest.html",
+                                "%url/sequencer.html",
                                 "{app}.env.appRoot"
                             ]
                         }
