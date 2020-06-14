@@ -51,10 +51,8 @@ fluid.defaults("adam.pushquencer", {
 
 adam.pushquencer.regionToSequence = function(that, stepz){
 
-    let firstcell = stepz[0];
     for (let row of stepz){ 
         if (row.length !== undefined){
-            firstcell = stepz[0][0];
             for (let column of row){
                 //Object.assign(column, that.model.payload);
                 Object.assign(column, that.model.midipayload);
@@ -74,6 +72,8 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     if( that.addsequence(s) ){ // check for overlap
         that.selectsequence(s);
 
+        console.log('successful add');
+
         //// todo fix this 
         ///that.sequencergrid.applier.change("grid", stepz);
 
@@ -88,7 +88,6 @@ adam.pushquencer.regionToSequence = function(that, stepz){
         }
         that.sequencergrid.events.gridChanged.fire();
     }else{
-        //that.overlappedCell(s);
         console.log('something went wrong adding a sequence');
     }
 };

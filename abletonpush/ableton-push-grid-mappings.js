@@ -1,3 +1,5 @@
+/// requires utils.js
+
 //// todo 
 // writes to hardward should instead call to state and let changeappliers work
 fluid.defaults("adam.pushgridmapper", {
@@ -241,12 +243,6 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     that.options.notedown = undefined;
 };
-
-
-// https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
-function testTwoObjects(object1, object2){
-    return Object.keys(object1).every((key) =>  object1[key] === object2[key]);
-}
 
 //------------------------------------------
 // grid to push mappings

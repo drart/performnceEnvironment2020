@@ -100,13 +100,55 @@ fluid.defaults("adam.sequence", {
             },
             args: "{that}"
         },
-        stepPosition: {
-            func: function(that, step){
-                let thestep = that.getstep(step);
-                if(thestep === undefined) return;
+        clearBeat: {
+            func: function(that,  beat = 0){
+                if (beat > that.model.beats - 1 ) beat = that.model.beats - 1;
+                let removedbeats = [];
+                for ( let key in that.model.steps ){
+                    if ( key >= beat * 480 && key < (beat * 480) + 480){
+                        removedbeats.push( that.model.steps[key] );
+                        delete that.model.steps[key];
+                    }
+                }
+                return removedbeats;
+            },
+            args: ["{that}", "{arguments}.0"]
+        },
+        getStepFromLocation: {
+            func: function(that, loc ){
+                let thestep
+                for ( key in that.model.steps ){
+                    if (testTwoObjects( that.model.steps[key].location, loc) ){
+                        thestep =  that.model.steps[key];
+                        break;
+                    }
+                }
                 return thestep;
             },
             args: ["{that}", "{arguments}.0"]
+        },
+        getStepBeat: {
+            func: function(that, step){
+                for ( key in that.model.steps ) {
+                    if ( testTwoObjects( that.model.steps[key], step )){
+                        return parseInt(key) / 480 ;
+                    } 
+                }
+            },
+            args: ["{that}", "{arguments}.0"]
+        },
+        reviseBeat: {
+            func: function(that, seq, beat = 0){ // multibeats?
+                if (beat > that.model.beats - 1 ) beat = that.model.beats - 1;
+                //// todo if seq.model.beatlength > 1 then clear multiple beats
+                let removedsteps = that.clearBeat(beat);
+
+                for ( let key in seq.model.steps ){
+                    that.model.steps[ parseInt(key) + beat * 480 ] = seq.model.steps[key];
+                }
+                return removedsteps;
+            },
+            args: ["{that}", "{arguments}.0", "{arguments}.1"]
         }
     }
 });
@@ -155,7 +197,6 @@ fluid.defaults("adam.sequencer",{
                             const target = s.model.target;
 
                             if(target && target.loop !== false){
-
 
                                 // todo if grid exisits then upadte it with payload location to be highlighted? 
                                 if(that.sequencergrid !== undefined){
@@ -216,34 +257,45 @@ fluid.defaults("adam.sequencer",{
                 }else{
                     if ( that.thegrid.checkzoneoverlap( seq.model.steps ) ){
 
-                        // get the overlapping sequence or sequences?
+                        // get the overlapping sequence  // no logic for overlapping sequences
                         // set the selected cell to be the first overlapping cell
-
-                        for (let  key in seq.model.steps) {
-                            let cell = that.thegrid.getcell( seq.model.steps[key].location );
-                            if (cell){
-                                that.model.selectedsequence = cell; 
+                        let keys = Object.keys(seq.model.steps);
+                        let foundseq = null; 
+                        for ( let key of keys ){
+                            foundseq = that.thegrid.getcell( seq.model.steps[key].location );
+                            if (foundseq){
+                                /// todo , make this selection an option
                                 that.thegrid.model.selectedcell = seq.model.steps[key].location;
-                                break;
+                                console.log("selected cell is " ); 
+                                console.log(that.thegrid.model.selectedcell);
+
+                                if (key === keys[0]){ /// if the first cell is first beat of found sequence then revise it
+                                    let step = foundseq.getStepFromLocation( seq.model.steps[0].location ); 
+                                    let beat = foundseq.getStepBeat( step );
+                                    let removedbeats = foundseq.reviseBeat(seq, beat);
+
+                                    /*
+                                    if (that.push){ /// todo bad solution
+                                        for(step of removedbeats){
+                                            that.push.padWrite( step.location.row, step.location.column, 0 );
+                                            console.log( step.location );
+                                        }
+                                    }
+                                    */
+                                    return true;
+                                }
+                                break; 
                             } 
                         }
-                        
-                        /// TODO 
-                        // if the first step of overlapping zone is the first step of a beat then revise beat
-
-                        console.log("selected cell is " ); 
-                        console.log(that.thegrid.model.selectedcell);
-
                         return false;
                     }
-
-                    // if no overlap put into grid with reference to sequence 
-                    for( let key of Object.keys(seq.model.steps)){
-                        let loc = seq.model.steps[key].location;
-                        that.thegrid.addcell( loc, seq );
-                    }
-                    //// TODO fire sequence added event?
                 };
+
+                // if no overlap put into grid with reference to sequence 
+                for( let key of Object.keys(seq.model.steps)){
+                    let loc = seq.model.steps[key].location;
+                    that.thegrid.addcell( loc, seq );
+                }
 
                 //seq.model.currentstep = 0;
                 seq.model.playing = true; // todo: defer this to actual playing?
