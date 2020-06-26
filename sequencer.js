@@ -127,7 +127,7 @@ fluid.defaults("adam.sequence", {
             },
             args: ["{that}", "{arguments}.0"]
         },
-        getStepBeat: {
+        getStepBeat: { /// steps need location, func, args
             func: function(that, step){
                 for ( key in that.model.steps ) {
                     if ( testTwoObjects( that.model.steps[key], step )){
@@ -254,6 +254,8 @@ fluid.defaults("adam.sequencer",{
                 if(that.thegrid === null){
                     console.log('null grid');
                     return false;
+                }
+                /* this checking for overlap has been put into the grid mapping instead
                 }else{
                     if ( that.thegrid.checkzoneoverlap( seq.model.steps ) ){
 
@@ -274,15 +276,14 @@ fluid.defaults("adam.sequencer",{
                                     let beat = foundseq.getStepBeat( step );
                                     let removedbeats = foundseq.reviseBeat(seq, beat);
 
-                                    /*
-                                    if (that.push){ /// todo bad solution
-                                        for(step of removedbeats){
-                                            that.push.padWrite( step.location.row, step.location.column, 0 );
-                                            console.log( step.location );
-                                        }
-                                    }
-                                    */
-                                    return true;
+                                    //if (that.push){ /// todo bad solution
+                                    //    for(step of removedbeats){
+                                    //        that.push.padWrite( step.location.row, step.location.column, 0 );
+                                    //        console.log( step.location );
+                                    //    }
+                                    //}
+                                    //return true;
+
                                 }
                                 break; 
                             } 
@@ -290,6 +291,7 @@ fluid.defaults("adam.sequencer",{
                         return false;
                     }
                 };
+                */
 
                 // if no overlap put into grid with reference to sequence 
                 for( let key of Object.keys(seq.model.steps)){
@@ -319,7 +321,7 @@ fluid.defaults("adam.sequencer",{
                     that.thegrid.removecell( step.location );
                 }
                 return thesequence;
-                /// thegrid.events.gridChanged.fire(); // ???
+                /// todo? thegrid.events.gridChanged.fire(); // ???
             },
             args: "{that}"
         },

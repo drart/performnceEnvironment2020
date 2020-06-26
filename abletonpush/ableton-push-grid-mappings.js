@@ -22,7 +22,8 @@ fluid.defaults("adam.pushgridmapper", {
     events: {
         regionCreated: null,
         selectcell: null,
-        gridaction: null
+        gridaction: null,
+        overlapFound: null
     },
     notedown: undefined,
     modelListeners: {
@@ -214,7 +215,15 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
             }
         }
 
-        that.events.regionCreated.fire( stepz );
+        ///// test overlap    if no overlap then create region, otherwise look for grid mofiication or highlight
+        if ( that.sequencergrid.checkzoneoverlap( stepz ) ){
+            console.log('zone overlap, do seomthing rational here'); 
+            // todo first overlapping cell should be the selectedcell
+            // todo if the first cell of the new region is the first beat of an existing region then amend beat
+            that.events.overlapFound.fire( stepz );
+        }else{
+            that.events.regionCreated.fire( stepz );
+        }
 
         that.options.notedown = undefined;
 
@@ -228,17 +237,26 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     if(that.options.notedown === undefined){ return; };
 
-    if ( testTwoObjects(pos, that.options.notedown) ){ // should always be ture
+    if ( testTwoObjects(pos, that.options.notedown) ){ // should always be true 
 
         let payload = {};
         payload.location = pos;
 
         stepz = [payload];
 
-        that.events.regionCreated.fire( stepz );
+        //that.events.regionCreated.fire( stepz );
 
     }else{
         console.log('something went wrong');
+    }
+
+    if( that.sequencergrid.checkcelloverlap( stepz[0].location )){
+        console.log('selected cell is: ');
+        console.log( pos  );
+        that.sequencergrid.model.selectedcell = pos;
+        that.events.selectcell.fire( pos );
+    }else{
+        that.events.regionCreated.fire( stepz );
     }
 
     that.options.notedown = undefined;

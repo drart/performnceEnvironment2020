@@ -68,6 +68,10 @@ fluid.defaults("adam.midi.push", {
         lcdline4: {
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{change}.value" , 3]
+        },
+        "{that}.padGrid.model.grid": {
+            func: "adam.midi.push.gridUpdate",
+            args: ["{that}", "{change}.value", "{change}.oldValue"] /// "{change}.oldValue"
         }
     },
     events: {
@@ -118,10 +122,12 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.padClearAll",
             args: ["{that}"]
         },
+        /*
         padSet: {
             funcName: "adam.midi.push.gridUpdate",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
+        */
         buttonWrite: {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
@@ -207,8 +213,23 @@ adam.midi.push.padClearAll = function(that){
     }
 };
 
-adam.midi.push.gridUpdate = function(that, loc, colour){
-    console.log(loc);
+/// todo make this more useable
+adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
+    console.log(newgrid);
+    console.log(oldgrid);
+    /*
+
+    for( let x = 0; x < 8; x++){
+        for( let y = 0; y < 8; y++){
+            if ( typeof oldgrid[i] === "object" && typeof newgrid[i] === "object"){
+                if ( !testTwoObjects(oldgrid[i], newgrid[i])  ){
+                    
+                }
+            }
+        }
+    }
+
+     */
 };
 
 //adam.midi.push.padRefresh = function(that){};

@@ -4,6 +4,8 @@ fluid.defaults("adam.pushquencer", {
         bpm: 97,
         payload: {"func": "trig", "args": 1000},
         midipayload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 39, velocity: 100}},
+        selectedpayload: undefined,
+        selectedtarget: undefined,
     },
     invokers: {
         poppy: {
@@ -31,6 +33,8 @@ fluid.defaults("adam.pushquencer", {
         onCreate: {
             func : function(that){
                 that.push.model.tempoKnob = that.model.bpm;
+                that.model.selectedpayload = that.model.midipayload;
+                that.model.selectedtarget = that.midiout;
             },
             args: "{that}"
         },
@@ -43,10 +47,60 @@ fluid.defaults("adam.pushquencer", {
         },
         "{that}.events.regionCreated": {
             priority: "first",
-            func: "adam.pushquencer.regionToSequence",
+            funcName: "adam.pushquencer.regionToSequence",
             args: ["{that}", "{arguments}.0"]
+        },
+        "{that}.events.overlapFound": {
+            func: function( that, cellz ){
+                
+                if ( Array.isArray( cellz[0] ) ){
+                    console.log( ' multibeat selection not yet supported ' );
+                }else {
+                    /// todo check if first beat 
+                    let newseq = adam.sequence();
+                    for ( let cell of cellz  ){
+                        Object.assign( cell, that.model.midipayload );
+                        /// todo get payload from step and put it in the revision
+                    }
+                    newseq.arraytosequence(cellz);
+                    newseq.settarget( that.midiout );
+
+                    let foundseq = that.thegrid.getcell( cellz[0].location );
+                    let overlappingstep = foundseq.getStepFromLocation ( cellz[0].location ) ;
+
+                    //console.log( foundseq.getStepBeat( overlappingstep ) );
+                    //console.log( overlappingstep ) ;
+
+                    let somebeat = foundseq.getStepBeat( overlappingstep  ) ;
+                    let removedsteps = foundseq.reviseBeat( newseq, somebeat );
+
+                    for ( let step of removedsteps ){
+                        that.sequencergrid.removecell( step.location );
+                    }
+                    for (let cell of cellz){
+                        that.sequencergrid.addcell( cell.location, 1 );
+                    }
+                    that.sequencergrid.events.gridChanged.fire();
+
+                }
+            },
+            args: [ "{that}", "{arguments}.0" ]
+        },
+        "{that}.events.selectcell": {
+            func: function(that){
+                console.log( that.thegrid.getcell ( that.sequencergrid.model.selectedcell ) );
+            },
+            args: "{that}"
         }
     },
+    /*
+    modelListeners: {
+        "{sequencergrid}.model.selectedcell": { // not firing, why?
+            func: console.log,
+            args: "{that}.model.selectedcell"
+        }
+    }
+    */
 });
 
 adam.pushquencer.regionToSequence = function(that, stepz){
@@ -69,12 +123,14 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     s.settarget( that.midiout );
     s.model.loop = true;
 
+    // todo finish here and create different funtions for new or revising
+
     if( that.addsequence(s) ){ // check for overlap
         that.selectsequence(s);
 
         console.log('successful add');
 
-        //// todo fix this 
+        //// todo fix this  ->  create function that maps the sequencergrid to the ableton grid
         ///that.sequencergrid.applier.change("grid", stepz);
 
         for ( let step of stepz ){
@@ -86,12 +142,11 @@ adam.pushquencer.regionToSequence = function(that, stepz){
                 that.sequencergrid.addcell( step.location, 1 );
             }
         }
-        that.sequencergrid.events.gridChanged.fire();
+        that.sequencergrid.events.gridChanged.fire(); 
     }else{
         console.log('something went wrong adding a sequence');
     }
 };
-
 
 adam.pushquencer.popSequence = function(that){
     let removedsequence = that.popsequence();
@@ -105,4 +160,3 @@ adam.pushquencer.popSequence = function(that){
     }
     that.sequencergrid.events.gridChanged.fire();
 }
-

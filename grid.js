@@ -59,9 +59,18 @@ fluid.defaults("adam.grid", {
        checkzoneoverlap:{ 
            func: function(that, stepz){
                for ( key of Object.keys( stepz )){
-                   if ( that.checkcelloverlap( stepz[key].location )){
-                       console.log('zone overlap');
-                       return true;
+                   if( Array.isArray( stepz[key] )){
+                       for (subkey of Object.keys(stepz[key])){
+                           if ( that.checkcelloverlap( stepz[key][subkey].location )){
+                               console.log('zone overlap');
+                               return true;
+                           }
+                       }
+                   }else{
+                       if ( that.checkcelloverlap( stepz[key].location )){
+                           console.log('zone overlap');
+                           return true;
+                       }
                    }
                }
                console.log ('no zone overlap');
@@ -76,6 +85,28 @@ fluid.defaults("adam.grid", {
                 }else{
                     return true;
                 }
+            },
+            args: ["{that}", "{arguments}.0"]
+        },
+        checkexactoverlap: {
+            func: function( that, cellz ){
+              console.log(' not implemented yet' ); 
+            },
+            args: ["{that}", "{arguments}.0"]
+        },
+        getoverlap: {
+            func: function(that, cellz){
+                let foundcells = [];
+                for ( key of Object.keys( cellz ) ){
+                    if (Array.isArray( cellz[key] ) ){
+                        for ( subkey of Object.keys( cells[key] ) ){
+                            
+                        }
+                    }else{
+
+                    }
+                }
+                return foundcells;
             },
             args: ["{that}", "{arguments}.0"]
         },
