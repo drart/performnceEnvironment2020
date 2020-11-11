@@ -9,7 +9,8 @@
     },
     "dependencies": {
         "flocking": "2.0.2",
-        "infusion-electron": "0.7.0"
+        "infusion-electron": "0.7.0",
+        "nexusui": "^2.1.6"
     },
     "scripts": {
         "start": "electron ."

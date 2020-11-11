@@ -38,8 +38,16 @@ fluid.defaults("adam.pushquencer", {
             },
             args: "{that}"
         },
+        "{that}.events.beat": {
+            func: console.log,
+            args: "{arguments}.0"
+        },
         "{push}.events.tempoKnob": {
             funcName: "{that}.setTempo",
+            args: "{push}.model.tempoKnob"
+        },
+        "{push}.events.tempoKnob": {
+            func: console.log,
             args: "{push}.model.tempoKnob"
         },
         "{push}.events.buttonPlayPressed": {
@@ -55,8 +63,29 @@ fluid.defaults("adam.pushquencer", {
                 
                 if ( Array.isArray( cellz[0] ) ){
                     console.log( ' multibeat selection not yet supported ' );
+                    let rows = cellz.length;
+                    let columns = cellz[rows-1].length;
+                    let locationlastcell = cellz[rows-1][columns-1].location;
+
+                    // select first and last cell to remove it? 
+                    let locationfirstcell = cellz[0][0].location;
+                    console.log(locationfirstcell);
+                    console.log(locationlastcell);
+
+                    //if( testTwoObjects( locationfirstcell, 
+
+                    // select all the first beats to do something
+                    return;
                 }else {
-                    /// todo check if first beat 
+                    // todo check this amendment doesn't overlap with an existing seq/
+                    let foundseq = that.thegrid.getcell( cellz[0].location );
+                    let overlappingstep = foundseq.getStepFromLocation ( cellz[0].location ) ;
+                    
+                    if ( !foundseq.isStepOnBeat( overlappingstep )){
+                        console.log( ' step not ok beat, exiting ' );
+                        return;
+                    }
+
                     let newseq = adam.sequence();
                     for ( let cell of cellz  ){
                         Object.assign( cell, that.model.midipayload );
@@ -64,9 +93,6 @@ fluid.defaults("adam.pushquencer", {
                     }
                     newseq.arraytosequence(cellz);
                     newseq.settarget( that.midiout );
-
-                    let foundseq = that.thegrid.getcell( cellz[0].location );
-                    let overlappingstep = foundseq.getStepFromLocation ( cellz[0].location ) ;
 
                     //console.log( foundseq.getStepBeat( overlappingstep ) );
                     //console.log( overlappingstep ) ;
@@ -147,6 +173,18 @@ adam.pushquencer.regionToSequence = function(that, stepz){
         console.log('something went wrong adding a sequence');
     }
 };
+
+adam.pushquencer.removeSequence = function(that, removedseq){
+    if (removedseq === undefined ){ // todo is there a way to check fluid types?
+        console.log (' error. sequence needed to be removed' );
+        return;
+    }
+    for ( key in removedseq.model.steps ){
+        let step = removedseq.model.steps[key];
+        that.sequencergrid.removecell( step.location );
+    } 
+    that.sequencergrid.events.gridChanged.fire();
+}
 
 adam.pushquencer.popSequence = function(that){
     let removedsequence = that.popsequence();

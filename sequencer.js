@@ -127,6 +127,20 @@ fluid.defaults("adam.sequence", {
             },
             args: ["{that}", "{arguments}.0"]
         },
+        isStepOnBeat: {
+            func: function( that, step ){
+                for (key in that.model.steps ){
+                    if ( testTwoObjects( that.model.steps[key].location, step.location )){
+                        if ( key % 480 === 0 ){
+                            return true;
+                        }else {
+                            return false; 
+                        }
+                    }
+                }
+            },
+            args: ["{that}", "{arguments}.0"]
+        },
         getStepBeat: { /// steps need location, func, args
             func: function(that, step){
                 for ( key in that.model.steps ) {
@@ -178,8 +192,17 @@ fluid.defaults("adam.sequencer",{
             callback: {
                 func: function(that){
                     if (that.model.ticktime % that.model.beatlength === 0){
-                        console.log(that.model.ticktime);
+                        //console.log(that.model.ticktime);
+                        that.events.beat.fire( that.model.ticktime / that.model.beatlength );                        
                     }
+                    if (that.model.ticktime % that.model.beatlength === that.model.beatlength / 2 ) {
+                        for ( let s of that.model.sequences){
+                            if ( Object.keys(s.model.steps).length === 1 ){
+                                that.push.padWrite( s.model.steps[0].location.row, s.model.steps[0].location.column );
+                            }
+                        }
+                    }
+
                     for (let s of that.model.sequences){
                         // TODO should ticktime be kept in the loop instead of the sequencer? 
                         var thetick = (s.model.loop === true) ? that.model.ticktime % (that.model.beatlength * s.model.beats) : that.model.ticktime;
@@ -227,6 +250,7 @@ fluid.defaults("adam.sequencer",{
     events: {
         barline: null,
         resync: null,
+        beat: null,
     },
     invokers: {
         setTempo: {

@@ -61,10 +61,6 @@ fluid.defaults("adam.pushgridmapper", {
             },
             args: "{that}"
         },
-        "{push}.events.tempoKnob":{
-            func: console.log,
-            args: "{push}.model.tempoKnob"
-        },
         "{push}.events.knob1": {
             funcName: "adam.midi.push.knobsToString",
             args: "{push}"

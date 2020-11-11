@@ -19,34 +19,58 @@
     <script src="abletonpush/ableton-push-midi.js"></script>
     <script src="abletonpush/ableton-push-grid-mappings.js"></script>
     <script src="abletonpush/ableton-push-sequencer-mappings.js"></script>
+
+    <select id="midi-inputs"></select>
+    <select id="midi-outputs"></select>
     <script>
-        var gridquencer = adam.pushquencer();
+
+        flock.midi.requestPorts(function(ports){
+            $.each(ports.inputs, function(index, value){
+                $("#midi-inputs").append( $('<option/>', {value: value.name, text: value.name} ));
+                if (value.name === "Ableton Push User Port"){
+                    var gridquencer = adam.pushquencer();
+                }
+            });
+            $.each(ports.outputs, function(index, value){
+                $("#midi-outputs").append( $('<option/>', {value: value.name, text: value.name} ));
+            });
+        }, console.log);
+
+    </script>
+
+    <script>
     </script>
 
     <ul>
         <li> touch a step to edit its payload?</li>
         <li> touch sequence limits to edit sequence</li>
+        <li> gui - list of sequences and list of i/o</li>
+        <li> map sequencergrid to pushgrid with modellistener </li>
+        <li> map sequencegrid to dom </li>
+        <li> remove intermediate grid model </li>
+        <li> use right side buttons to change subdivision </li>
         <li> selected sequence puts payloads on top knobs? </li>
-        <li> single step sequence change from highlight color to previousstep color on next sequencer action</li>
+        <li> options for step payloads (put them on the next row?)</li>
         <li> payloads have functions (random pitch, random pitch from set, non-uniform random pitch set</li>
-        <li> think through tracks and sequences and instruments </li>
+        <li> transpose a sequence from one part of a grid to another</li>
         <li> cross rhythms, poly temporal (sequencer sends message when a sync occurs?)</li>
-        <li> change sequence length by ammending it </li>
+        <li> reverse sequence </li>
+        <li> offset by touching it (requires mode switching?) </li>
+        <li> chain sequences </li>
+        <li> think through tracks and sequences and instruments </li>
+        <li> make an api doc with list of functions and inputs</li>
+        <li> <s>change sequence length by ammending it </s></li>
         <li><s>change tempo</s></li>
         <li><s>single step sequence</s> </li>
+        <li> <s>single step sequence change from highlight color to previousstep color on next sequencer action </s></li>
         <li> <s>multiple synths availabe on top pads</s></li>
         <li> <s>select sequence </s></li>
         <li> <s>mute sequence</s> </li>
-        <li> reverse sequence </li>
         <li> <s>delete sequence </s></li>
         <li> <s>check to see if grid placement exists already... </s></li>
         <li> <s>highlight step</s></li>
-        <li> offset by touching it (requires mode switching?) </li>
         <li> <s>delete by touching the zone again </s></li>
         <li> <s>multiple row/beat sequences</s></li>
-        <li> options for step payloads (put them on the next row?)</li>
-        <li> chain sequences </li>
-        <li> make an api doc with list of functions and inputs</li>
     </ul>
 
     </body>
