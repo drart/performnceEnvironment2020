@@ -2,8 +2,9 @@ fluid.defaults("adam.pushquencer", {
     gradeNames: ["adam.sequencer", "adam.pushgridmapper"],
     model: {
         bpm: 97,
+        /// todo modelize payloads?
         payload: {"func": "trig", "args": 1000},
-        midipayload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 39, velocity: 100}},
+        midipayload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 36, velocity: 100}},
         selectedpayload: undefined,
         selectedtarget: undefined,
     },
@@ -20,7 +21,7 @@ fluid.defaults("adam.pushquencer", {
                 openImmediately: true,
                 ports: {
                     output: {
-                        name: "EIE"
+                        name: "ES-9 MIDI Out"
                     }
                 }
             }
@@ -46,10 +47,12 @@ fluid.defaults("adam.pushquencer", {
             funcName: "{that}.setTempo",
             args: "{push}.model.tempoKnob"
         },
+        /*
         "{push}.events.tempoKnob": {
             func: console.log,
             args: "{push}.model.tempoKnob"
         },
+        */
         "{push}.events.buttonPlayPressed": {
             funcName: "{that}.play",
         },
@@ -115,6 +118,9 @@ fluid.defaults("adam.pushquencer", {
         "{that}.events.selectcell": {
             func: function(that){
                 console.log( that.thegrid.getcell ( that.sequencergrid.model.selectedcell ) );
+
+                // todo put the payload on the knobs
+
             },
             args: "{that}"
         }
@@ -131,22 +137,25 @@ fluid.defaults("adam.pushquencer", {
 
 adam.pushquencer.regionToSequence = function(that, stepz){
 
+    var thepayload = fluid.copy( that.model.selectedpayload);
+
+    // todo move this to a post action?
+    that.model.midipayload.args.note++;
+
     for (let row of stepz){ 
         if (row.length !== undefined){
             for (let column of row){
-                //Object.assign(column, that.model.payload);
-                Object.assign(column, that.model.midipayload);
+                Object.assign(column, fluid.copy(thepayload));
             }
         }else{
             //Object.assign(row, that.model.payload);
-            Object.assign(row, that.model.midipayload);
+            Object.assign(row, fluid.copy(thepayload));
         }
     }
 
     let s = adam.sequence();
     s.arraytosequence(stepz);
-    //s.settarget( that.ticksynth );
-    s.settarget( that.midiout );
+    s.settarget( that.model.selectedtarget );
     s.model.loop = true;
 
     // todo finish here and create different funtions for new or revising
@@ -161,7 +170,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
 
         for ( let step of stepz ){
             if ( step.length !== undefined ){
-                for ( let substep of step ){
+                for ( let substep of step ){ /// for multibeat sequences
                     that.sequencergrid.addcell( substep.location, 1 );
                 }
             }else{
@@ -173,6 +182,32 @@ adam.pushquencer.regionToSequence = function(that, stepz){
         console.log('something went wrong adding a sequence');
     }
 };
+
+/*
+adam.pushquencer.addlights = function (that, seq ){
+    if( that.addsequence(s) ){ // check for overlap
+        that.selectsequence(s);
+
+        console.log('successful add');
+
+        //// todo fix this  ->  create function that maps the sequencergrid to the ableton grid
+        ///that.sequencergrid.applier.change("grid", stepz);
+
+        for ( let step of stepz ){
+            if ( step.length !== undefined ){
+                for ( let substep of step ){ /// for multibeat sequences
+                    that.sequencergrid.addcell( substep.location, 1 );
+                }
+            }else{
+                that.sequencergrid.addcell( step.location, 1 );
+            }
+        }
+        that.sequencergrid.events.gridChanged.fire(); 
+    }else{
+        console.log('something went wrong adding a sequence');
+    }
+};
+*/
 
 adam.pushquencer.removeSequence = function(that, removedseq){
     if (removedseq === undefined ){ // todo is there a way to check fluid types?

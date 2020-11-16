@@ -20,21 +20,23 @@
     <script src="abletonpush/ableton-push-grid-mappings.js"></script>
     <script src="abletonpush/ableton-push-sequencer-mappings.js"></script>
 
-    <select id="midi-inputs"></select>
+    <button id="playbutton" onclick="flock.enviro.shared.play()"> Play </button>
     <select id="midi-outputs"></select>
     <script>
 
+        var gridquencer;
+
         flock.midi.requestPorts(function(ports){
             $.each(ports.inputs, function(index, value){
-                $("#midi-inputs").append( $('<option/>', {value: value.name, text: value.name} ));
                 if (value.name === "Ableton Push User Port"){
-                    var gridquencer = adam.pushquencer();
+                    gridquencer = adam.pushquencer();
                 }
             });
             $.each(ports.outputs, function(index, value){
                 $("#midi-outputs").append( $('<option/>', {value: value.name, text: value.name} ));
             });
         }, console.log);
+        // todo put in a list of synths for outputs too
 
     </script>
 

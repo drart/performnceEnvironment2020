@@ -23,8 +23,8 @@ fluid.defaults("adam.midi.push", {
         knob2: { // is this better?
             min: 0,
             max: 100,
-            val: 50,
-            inc: 1
+            value: 50,
+            increment: 1
         },
         */
         knob1: 100, 
@@ -45,6 +45,25 @@ fluid.defaults("adam.midi.push", {
             selected: 1,
             highlighted: 30
         },
+        buttons: {
+            quarter: 19,
+            quartertriplet: 1,
+            eighthtriplet: 1,
+            eighth: 1,
+            sixteenth: 1,
+            sixteenthtriplet: 1,
+            thirtysecond: 1,
+            thitysecondtriplet: 1,
+            left: 1, 
+            right: 1, 
+            down: 1, 
+            up: 1,
+            newbutton: 1,
+            deletebutton: 1, 
+            automation: 1,
+            note: 1, 
+            session: 1
+        }
     },
     components: {
         padGrid : {
@@ -68,6 +87,10 @@ fluid.defaults("adam.midi.push", {
         lcdline4: {
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{change}.value" , 3]
+        },
+        buttons: {
+            funcName: "adam.midi.push.buttonWrite",
+            args: ["{that}", "{change}.value", "{change}.oldvalue" ]
         },
         "{that}.padGrid.model.grid": {
             func: "adam.midi.push.gridUpdate",
@@ -94,6 +117,8 @@ fluid.defaults("adam.midi.push", {
         volumeKnob: null,
         buttonPlayPressed: null,
         buttonPlayReleased: null,
+        buttonPressed: null, 
+        buttonReleased: null
     },
     invokers: {
         // LCD Handlers
@@ -127,11 +152,11 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.gridUpdate",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
-        */
         buttonWrite: {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
+        */
     },
     listeners : {
         onReady: { 
@@ -163,6 +188,7 @@ fluid.defaults("adam.midi.push", {
 // 240,71,127,21,<24+line(0-3)>,0,<Nchars+1>,<Offset>,<Chars>,247
 // 240,71,127,21,25,0,13,4,"Hello World",247
 adam.midi.push.lcdWrite = function(that, thestring="test", line = 0, offset = 0 ){
+    console.log(thestring);
     var thestringinascii = []; 
     if(typeof thestring != "string"){
         thestring = thestring.toString();
@@ -215,6 +241,7 @@ adam.midi.push.padClearAll = function(that){
 
 /// todo make this more useable
 adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
+    console.log('gridupdate');
     console.log(newgrid);
     console.log(oldgrid);
     /*
@@ -235,10 +262,22 @@ adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
 //adam.midi.push.padRefresh = function(that){};
 
 ///// TODO FIX THIS 
-adam.midi.push.buttonWrite = function (that, button, colour){
-    var midimessage = {type: "noteOn", channel: 0, note: 10, velocity: colour}
-    midimessage.note = button; // ?
+//    map button to the buttons in the midi 
+/*
+adam.midi.push.buttonWrite = function (that, button, colour = 1){
+    var midimessage = {type: "control", channel: 0, number: button , value: colour}
     that.send(midimessage);
+};
+*/
+
+adam.midi.push.buttonWrite = function (that, buttons, oldstate){
+    console.log( that );
+    console.log(buttons);
+    console.log( oldstate );
+    
+    for ( let b in buttons ){
+        console.log( buttons[b] );
+    }
 };
 
 adam.midi.push.noteToEvents = function(that, msg){
@@ -331,10 +370,12 @@ adam.midi.push.controlToEvents = function(that, msg){
             that.events.buttonPlayReleased.fire();
         }
     }
+
+    // todo finish the mappings here
+
 }; 
-    //adam.midi.push.aftertouchToEvents}
 
-
+//adam.midi.push.aftertouchToEvents}
 
 /////////////////////////////////////////////
 //  Controller Utilities
@@ -414,4 +455,3 @@ adam.midi.domlog.ready = function(that){
     $("<div/>").attr("id", that.id+"-aftertouch").appendTo(that.options.domElement);
     $("<div/>").attr("id", that.id+"-pitchbend").appendTo(that.options.domElement);
 };
-

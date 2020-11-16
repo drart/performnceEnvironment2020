@@ -257,6 +257,8 @@ fluid.defaults("adam.sequencer",{
             func: function(that, bpm){
                 that.model.bpm = bpm;
                 that.set("pulse.freq", that.model.bpm/60 * that.model.beatlength);
+                console.log( typeof bpm );
+                console.log( bpm );
             },
             args: ["{that}", "{arguments}.0"]
         },
@@ -333,19 +335,29 @@ fluid.defaults("adam.sequencer",{
             },
             args: ["{that}", "{arguments}.0"]
         },
+        /*
+         *TODO put the step adding and removing into separate functions
+        addsteps: {},
+        removesteps: {
+            func: function(that, seq, stepz){
+                for ( key in steps ){
+                }
+            },
+            args: ["{that}", "{arguments}.0", "{arguments}.1"]
+        },
+        */
         popsequence: {
             func: function(that){
                 let thesequence = that.model.sequences.pop();
                 if (thesequence === undefined) {
                     return thesequence;
                 }
-                for ( key in thesequence.model.steps ){
-                    console.log(key);
+                for ( key in thesequence.model.steps ){ // or just pass on to remove? 
                     let step = thesequence.model.steps[key];
                     that.thegrid.removecell( step.location );
                 }
+                that.thegrid.events.gridChanged.fire(); 
                 return thesequence;
-                /// todo? thegrid.events.gridChanged.fire(); // ???
             },
             args: "{that}"
         },
@@ -356,31 +368,20 @@ fluid.defaults("adam.sequencer",{
                     console.log('trying to delete sequence that does not exist');
                 }else{
                     deletedsequence = that.getsequence(seq);
-                    that.model.sequences.splice( that.model.sequences.indexOf(deletedsequence), 1);
-                }
-
-                /*
-                // remove from grid
-                if ( deletedsequence !== undefined ){
-                    var keys = Object.keys(deletedsequence.model.steps);
-                    for ( let i = 0; i < keys.length; i++){
-                        let step = deletedsequence.model.steps[ keys[i] ];
-                        console.log(step);
-                        if (step.location){
-                            if (ccc){
-                                ccc.push.writePad(step.location.row, step.location. column, 0);
-                            }
-                            that.thegrid.removecell(step.location);
-                        }
+                    for (key in deletedsequence.model.steps){
+                        let step = deletedsequence.model.steps[key];
+                        that.thegrid.removecell (step.location );
                     }
+                    that.model.sequences.splice( that.model.sequences.indexOf(deletedsequence), 1);
+                    that.thegrid.events.gridChanged.fire(); 
                 }
-                */
             },
             args: ["{that}", "{arguments}.0"]
         },
         mutesequence: {
             func: function(that, seq){
                 that.getsequence(seq).mute = true;
+                return true;
             },
             args: ["{that}", "{arguments}.0"]
         },

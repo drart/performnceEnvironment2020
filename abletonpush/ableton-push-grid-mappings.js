@@ -247,8 +247,7 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
     }
 
     if( that.sequencergrid.checkcelloverlap( stepz[0].location )){
-        console.log('selected cell is: ');
-        console.log( pos  );
+        console.log('selected cell is: ' + pos);
         that.sequencergrid.model.selectedcell = pos;
         that.events.selectcell.fire( pos );
     }else{
