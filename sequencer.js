@@ -257,7 +257,6 @@ fluid.defaults("adam.sequencer",{
             func: function(that, bpm){
                 that.model.bpm = bpm;
                 that.set("pulse.freq", that.model.bpm/60 * that.model.beatlength);
-                console.log( typeof bpm );
                 console.log( bpm );
             },
             args: ["{that}", "{arguments}.0"]

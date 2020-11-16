@@ -46,7 +46,7 @@ fluid.defaults("adam.midi.push", {
             highlighted: 30
         },
         buttons: {
-            quarter: 19,
+            quarter: 127,
             quartertriplet: 1,
             eighthtriplet: 1,
             eighth: 1,
@@ -58,11 +58,11 @@ fluid.defaults("adam.midi.push", {
             right: 1, 
             down: 1, 
             up: 1,
-            newbutton: 1,
-            deletebutton: 1, 
+            newbutton: 127,
+            deletebutton: 127, 
             automation: 1,
             note: 1, 
-            session: 1
+            session: 127
         }
     },
     components: {
@@ -94,7 +94,7 @@ fluid.defaults("adam.midi.push", {
         },
         "{that}.padGrid.model.grid": {
             func: "adam.midi.push.gridUpdate",
-            args: ["{that}", "{change}.value", "{change}.oldValue"] /// "{change}.oldValue"
+            args: ["{that}", "{change}.value", "{change}.oldValue"] 
         }
     },
     events: {
@@ -147,6 +147,10 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.padClearAll",
             args: ["{that}"]
         },
+        buttonClearAll: {
+            funcName: "adam.midi.push.buttonClearAll",
+            args: ["{that}"]
+        },
         /*
         padSet: {
             funcName: "adam.midi.push.gridUpdate",
@@ -163,6 +167,8 @@ fluid.defaults("adam.midi.push", {
             func: function(that){
                     that.lcdRefresh();
                     that.padClearAll();
+                    that.buttonClearAll();
+                    that.applier.change("buttons.quarter", 126);
             },
             args: ["{that}"]
         },
@@ -188,7 +194,7 @@ fluid.defaults("adam.midi.push", {
 // 240,71,127,21,<24+line(0-3)>,0,<Nchars+1>,<Offset>,<Chars>,247
 // 240,71,127,21,25,0,13,4,"Hello World",247
 adam.midi.push.lcdWrite = function(that, thestring="test", line = 0, offset = 0 ){
-    console.log(thestring);
+    //console.log(thestring);
     var thestringinascii = []; 
     if(typeof thestring != "string"){
         thestring = thestring.toString();
@@ -239,11 +245,20 @@ adam.midi.push.padClearAll = function(that){
     }
 };
 
+adam.midi.push.buttonClearAll = function(that){
+    let midiccs = [ 3, 9, 20, 21, 22, 23,24, 25, 26, 27, 28, 29, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 85, 86, 87, 88, 89, 90, 102, 103, 104, 105, 106, 107, 108, 109, 116, 117, 118, 119, 110, 111, 112, 113,114, 115];
+    var midimessage = {type: "control", channel: 0, number: 0 , value: 0 }
+    for ( b in midiccs ){
+        midimessage.number = midiccs[ b ];
+        that.send( midimessage );
+    }
+};
+
 /// todo make this more useable
 adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
-    console.log('gridupdate');
-    console.log(newgrid);
-    console.log(oldgrid);
+    console.log('gridupdate does nothing');
+    //console.log(newgrid);
+    //console.log(oldgrid);
     /*
 
     for( let x = 0; x < 8; x++){
@@ -270,13 +285,36 @@ adam.midi.push.buttonWrite = function (that, button, colour = 1){
 };
 */
 
+// idea rename to buttonstate?
+// gridquencer.push.applier.change("buttons.quarter", 2)
 adam.midi.push.buttonWrite = function (that, buttons, oldstate){
-    console.log( that );
-    console.log(buttons);
-    console.log( oldstate );
-    
+    var buttonMapping = {
+        quarter: 36,
+        quartertriplet: 37,
+        eighthtriplet: 39,
+        eighth: 38,
+        sixteenth: 40,
+        sixteenthtriplet: 41,
+        thirtysecond: 42,
+        thitysecondtriplet: 43,
+        left: 44, 
+        right: 45, 
+        down: 47, 
+        up: 46,
+        newbutton: 87,
+        deletebutton: 118, 
+        duplicate: 88,
+        automation: 89,
+        note: 50, 
+        session: 51 
+    };
+
+    var midimessage = {type: "control", channel: 0, number: 36, value: 1};
+
     for ( let b in buttons ){
-        console.log( buttons[b] );
+        midimessage.number = buttonMapping[ b ];
+        midimessage.value = buttons[ b ];
+        that.send( midimessage );
     }
 };
 
@@ -327,21 +365,25 @@ adam.midi.push.controlToEvents = function(that, msg){
         that.model["knob" + (msg.number-70)] = adam.clamp( that.model["knob" + (msg.number-70)], 0, 100 );
 
         that.events["knob" + (msg.number-70)].fire();
+        return;
     }
     if (msg.number === 79){
         that.model["volumeKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
         that.model["volumeKnob"] = adam.clamp( that.model["volumeKnob"], 0, 100 );
         that.events.volumeKnob.fire();
+        return;
     }
     if (msg.number === 14){
         that.model["swingKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
         that.model["swingKnob"] = adam.clamp( that.model["swingKnob"], 0, 100 );
         that.events.swingKnob.fire();
+        return;
     }
     if (msg.number === 15){
         that.model["tempoKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
         that.model["tempoKnob"] = adam.clamp( that.model["tempoKnob"], 20, 200 );
         that.events.tempoKnob.fire();
+        return;
     }
     
     if (msg.number === 64){
@@ -352,6 +394,7 @@ adam.midi.push.controlToEvents = function(that, msg){
         }else{
             that.events.pedal1.fire("up");
         }
+        return;
     }
     if (msg.number === 69){
         var down = (that.model.pedal2inverse) ? 0 : 127 ;
@@ -361,17 +404,24 @@ adam.midi.push.controlToEvents = function(that, msg){
         }else{
             that.events.pedal2.fire("up");
         }
+        return;
     }
-    //console.log(msg);
     if (msg.number === 85){
         if (msg.value === 127){
             that.events.buttonPlayPressed.fire();
         }else{
             that.events.buttonPlayReleased.fire();
         }
+        return;
     }
 
-    // todo finish the mappings here
+    /// all of the other buttons go here
+    // idea the track buttons on top of the grid get separated? 
+    if ( msg.value === 127 ) {
+        that.events.buttonPressed.fire( msg.number );
+    }else{
+        that.events.buttonReleased.fire( msg.number );
+    }
 
 }; 
 

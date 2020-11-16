@@ -15,6 +15,9 @@ fluid.defaults("adam.pushquencer", {
         }
     },
     components: {
+        //ES9midiout: {},
+        //EIEmidiout: {},
+        //flockingtimedgate
         midiout: {
             type: "flock.midi.connection",
             options: {
@@ -39,6 +42,13 @@ fluid.defaults("adam.pushquencer", {
             },
             args: "{that}"
         },
+        /*
+        onReady: {
+            func: function(that){
+            },
+            args: "{that}"
+        },
+        */
         "{that}.events.beat": {
             func: console.log,
             args: "{arguments}.0"
@@ -55,6 +65,10 @@ fluid.defaults("adam.pushquencer", {
         */
         "{push}.events.buttonPlayPressed": {
             funcName: "{that}.play",
+        },
+        "{push}.events.buttonPressed": {
+            funcName: "adam.pushquencer.buttonHandler",
+            args: [ "{that}", "{arguments}.0" ]
         },
         "{that}.events.regionCreated": {
             priority: "first",
@@ -232,4 +246,13 @@ adam.pushquencer.popSequence = function(that){
         that.sequencergrid.removecell( step.location );
     }
     that.sequencergrid.events.gridChanged.fire();
+}
+
+adam.pushquencer.buttonHandler = function (that, button){
+    if ( button === 118 ){
+        adam.pushquencer.popSequence( that );
+        return;
+    }
+
+    console.log( button );
 }
