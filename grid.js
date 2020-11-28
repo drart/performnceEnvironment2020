@@ -88,12 +88,14 @@ fluid.defaults("adam.grid", {
             },
             args: ["{that}", "{arguments}.0"]
         },
+        /*
         checkexactoverlap: {
             func: function( that, cellz ){
               console.log(' not implemented yet' ); 
             },
             args: ["{that}", "{arguments}.0"]
         },
+        */
         getoverlap: {
             func: function(that, cellz){
                 let foundcells = [];

@@ -247,8 +247,7 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
     }
 
     if( that.sequencergrid.checkcelloverlap( stepz[0].location )){
-        console.log('selected cell is: ' + pos);
-        that.sequencergrid.model.selectedcell = pos;
+        //that.sequencergrid.model.selectedcell = pos; // todo should be done in the sequencer mappings
         that.events.selectcell.fire( pos );
     }else{
         that.events.regionCreated.fire( stepz );

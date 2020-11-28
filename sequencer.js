@@ -47,6 +47,14 @@ fluid.defaults("adam.sequence", {
             },
             args: ["{that}", "{arguments}.0", "{arguments}.1"]
         },
+        getlocationpayload: {
+            func: function( that, loc ){
+                //console.log( that.getStepFromLocation( loc ) );
+                let step = that.getStepFromLocation( loc );
+                return step.args;
+            },
+            args: [ "{that}", "{arguments}.0"]
+        },
         arraytosequence: {
             func: function(that, arr){
                 if (!Array.isArray(arr)){
@@ -163,7 +171,15 @@ fluid.defaults("adam.sequence", {
                 return removedsteps;
             },
             args: ["{that}", "{arguments}.0", "{arguments}.1"]
+        },
+        reviseNumberBeats: {
+            func: function (that, seq, numberOfBeats=1){
+                // todo  // add some more steps or remove steps
+                return;
+            },
+            args: []
         }
+
     }
 });
 

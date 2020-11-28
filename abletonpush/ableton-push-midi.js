@@ -18,26 +18,83 @@ fluid.defaults("adam.midi.push", {
         lcdline2: ' '.padEnd(68, ' '),
         lcdline3: 'Made by Ableton'.padStart(41, ' ').padEnd(68, ' '),
         lcdline4: 'Powered by Flocking.js'.padStart(45, ' ').padEnd(68, ' '),
-        //knobs: [],
-        /*
-        knob2: { // is this better?
+        knob1: { 
+            name: "something",
             min: 0,
             max: 100,
             value: 50,
             increment: 1
         },
-        */
-        knob1: 100, 
-        knob2: 100,
-        knob3: 100,
-        knob4: 100,
-        knob5: 100,
-        knob6: 100,
-        knob7: 100,
-        knob8: 100,
-        volumeKnob: 100,
-        tempoKnob: 120,
-        swingKnob: 100,
+        knob2: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob3: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob4: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob5: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob6: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob7: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        knob8: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        swingKnob: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        tempoKnob: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
+        volumeKnob: { 
+            name: "something",
+            min: 0,
+            max: 100,
+            value: 50,
+            increment: 1
+        },
         pedal1inverse : false,
         pedal2inverse : false,
         padColours: {
@@ -62,7 +119,17 @@ fluid.defaults("adam.midi.push", {
             deletebutton: 127, 
             automation: 1,
             note: 1, 
-            session: 127
+            session: 127,
+            select: 1,
+            shift: 1,
+            addTrack: 1,
+            repeat: 1, 
+            accent: 1,
+            mute: 1,
+            solo: 1, 
+            stop: 1,
+            track: 1,
+            clip: 1
         }
     },
     components: {
@@ -130,7 +197,7 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.lcdClear",
             args: ["{that}"]
         },
-        lcdWrite: {
+        lcdWrite: { // lcdwriteline
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
         },
@@ -184,8 +251,8 @@ fluid.defaults("adam.midi.push", {
             funcName:  "adam.midi.push.controlToEvents",
             args: ["{that}", "{arguments}.0"]
         },
-        aftertouch: function(msg){},
-        pitchbend: function(msg){}
+        //aftertouch: function(msg){},
+        //pitchbend: function(msg){}
     },
     //dynamicComponents: {},
 });
@@ -337,52 +404,60 @@ adam.midi.push.noteToEvents = function(that, msg){
 adam.midi.push.knobsToString = function (that ){
     let knobstring = '';
 
-    let knob1string = that.model.knob1.toString();
-    knob1string = knob1string.padStart(8 , ' '); 
-    let knob2string = that.model.knob2.toString();
-    knob2string = knob2string.padStart(9 , ' '); 
-    let knob3string = that.model.knob3.toString();
-    knob3string = knob3string.padStart(8 , ' '); 
-    let knob4string = that.model.knob4.toString();
-    knob4string = knob4string.padStart(9 , ' '); 
-    let knob5string = that.model.knob5.toString();
-    knob5string = knob5string.padStart(8 , ' '); 
-    let knob6string = that.model.knob6.toString();
-    knob6string = knob6string.padStart(9 , ' '); 
-    let knob7string = that.model.knob7.toString();
-    knob7string = knob7string.padStart(8 , ' '); 
-    let knob8string = that.model.knob8.toString();
-    knob8string = knob8string.padStart(9 , ' '); 
+    // todo test for empty? 
+    for ( let i = 0; i < 8 ; i++ ){
+        currentknobstring = that.model['knob' + (i + 1)].value.toString();
+        currentknobstring = currentknobstring.padStart(8 + i%2  , ' ');
+        console.log(currentknobstring);
+        knobstring += currentknobstring;
+    }
 
-    knobstring = knob1string + knob2string + knob3string + knob4string + knob5string + knob6string + knob7string + knob8string;
     that.applier.change('lcdline1', knobstring);
+
+    knobstring = '';
+
+    for ( let i = 0; i < 8 ; i++ ){
+        currentknobstring = that.model['knob' + (i + 1)].name.toString();
+        currentknobstring = currentknobstring.substring(0, 7+i%2);
+        currentknobstring = currentknobstring.padStart( 8 + i%2  , ' ');
+        console.log(currentknobstring);
+        knobstring += currentknobstring;
+    }
+
+    that.applier.change('lcdline2', knobstring);
 };
 
 //// TODO Fix with temp value  => change applier?
 adam.midi.push.controlToEvents = function(that, msg){
     if (msg.number > 70 && msg.number < 79){
-        that.model["knob" + (msg.number-70)] += msg.value > 64 ? - (128-msg.value) : msg.value;
-        that.model["knob" + (msg.number-70)] = adam.clamp( that.model["knob" + (msg.number-70)], 0, 100 );
+        /// modelize this
+        //that.model["knob" + (msg.number-70)] += msg.value > 64 ? - (128-msg.value) : msg.value;
+        //that.model["knob" + (msg.number-70)] = adam.clamp( that.model["knob" + (msg.number-70)], 0, 100 ); 
+    
+        let knobval = msg.value > 64 ? - (128-msg.value) : msg.value;
 
-        that.events["knob" + (msg.number-70)].fire();
+        that.events["knob" + (msg.number-70)].fire( knobval );
         return;
     }
     if (msg.number === 79){
-        that.model["volumeKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
-        that.model["volumeKnob"] = adam.clamp( that.model["volumeKnob"], 0, 100 );
-        that.events.volumeKnob.fire();
+        //that.model["volumeKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
+        //that.model["volumeKnob"] = adam.clamp( that.model["volumeKnob"], 0, 100 );
+        let knobval = msg.value > 64 ? - (128-msg.value) : msg.value;
+        that.events.volumeKnob.fire( knobval );
         return;
     }
     if (msg.number === 14){
-        that.model["swingKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
-        that.model["swingKnob"] = adam.clamp( that.model["swingKnob"], 0, 100 );
-        that.events.swingKnob.fire();
+        //that.model["swingKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
+        //that.model["swingKnob"] = adam.clamp( that.model["swingKnob"], 0, 100 );
+        let knobval = msg.value > 64 ? - (128-msg.value) : msg.value;
+        that.events.swingKnob.fire( knobval );
         return;
     }
     if (msg.number === 15){
-        that.model["tempoKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
-        that.model["tempoKnob"] = adam.clamp( that.model["tempoKnob"], 20, 200 );
-        that.events.tempoKnob.fire();
+        //that.model["tempoKnob"] += msg.value > 64 ? - (128-msg.value) : msg.value;
+        //that.model["tempoKnob"] = adam.clamp( that.model["tempoKnob"], 20, 200 );
+        let knobval = msg.value > 64 ? - (128-msg.value) : msg.value;
+        that.events.tempoKnob.fire( knobval );
         return;
     }
     

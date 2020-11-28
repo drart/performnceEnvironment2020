@@ -1,6 +1,8 @@
 <HTML>
     <head>
         <script src="node_modules/flocking/dist/flocking-all.js"></script>
+        <script src="node_modules/flocking/src/ui/play-button/js/play-button.js"></script>
+        <script src="node_modules/nexusui/dist/NexusUI.js"></script>
         <script>
             flock.init({
                 //chans:4, 
@@ -38,6 +40,9 @@
         }, console.log);
         // todo put in a list of synths for outputs too
 
+
+        console.log(flock.environment.audioSystem.model);
+
     </script>
 
     <script>
@@ -45,6 +50,7 @@
 
     <ul>
         <li> touch a step to edit its payload?</li>
+        <li> adjust number of beats by touching first column</li>
         <li> touch sequence limits to edit sequence</li>
         <li> gui - list of sequences and list of i/o</li>
         <li> map sequencergrid to pushgrid with modellistener </li>

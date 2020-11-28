@@ -129,14 +129,26 @@ fluid.defaults("adam.pushquencer", {
             },
             args: [ "{that}", "{arguments}.0" ]
         },
+        // todo add more functionality here
         "{that}.events.selectcell": {
-            func: function(that){
-                console.log( that.thegrid.getcell ( that.sequencergrid.model.selectedcell ) );
+            func: function(that, pos){
+                that.sequencergrid.model.selectedcell = pos;
+                let seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
+                
+                // get the payload
+                //console.log( typeof seq.getlocationpayload( pos ) );
+                let string = fluid.prettyPrintJSON( seq.getlocationpayload(pos) );
+                console.log( string );
 
                 // todo put the payload on the knobs
+                //
+                // format the lcd
+                //
+                // link the knobs to the payload
+                // for things in payload, put knobs on top
 
             },
-            args: "{that}"
+            args: ["{that}", "{arguments}.0"]
         }
     },
     /*
