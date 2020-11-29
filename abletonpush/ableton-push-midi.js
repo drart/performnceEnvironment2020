@@ -75,21 +75,21 @@ fluid.defaults("adam.midi.push", {
             increment: 1
         },
         swingKnob: { 
-            name: "something",
+            name: "swing",
             min: 0,
             max: 100,
             value: 50,
             increment: 1
         },
         tempoKnob: { 
-            name: "something",
+            name: "tempo",
             min: 0,
             max: 100,
             value: 50,
             increment: 1
         },
         volumeKnob: { 
-            name: "something",
+            name: "volume",
             min: 0,
             max: 100,
             value: 50,
@@ -103,20 +103,20 @@ fluid.defaults("adam.midi.push", {
             highlighted: 30
         },
         buttons: {
-            quarter: 127,
-            quartertriplet: 1,
-            eighthtriplet: 1,
+            quarter: 1,
+            quartertuple: 1,
+            eighthtuple: 1,
             eighth: 1,
             sixteenth: 1,
-            sixteenthtriplet: 1,
+            sixteenthtuple: 1,
             thirtysecond: 1,
-            thitysecondtriplet: 1,
+            thitysecondtuple: 1,
             left: 1, 
             right: 1, 
             down: 1, 
             up: 1,
             newbutton: 127,
-            deletebutton: 127, 
+            deletebutton: 1, 
             automation: 1,
             note: 1, 
             session: 127,
@@ -129,7 +129,10 @@ fluid.defaults("adam.midi.push", {
             solo: 1, 
             stop: 1,
             track: 1,
-            clip: 1
+            clip: 1,
+            undo: 127,
+            mute: 1,
+            device: 1,
         }
     },
     components: {
@@ -230,6 +233,7 @@ fluid.defaults("adam.midi.push", {
         */
     },
     listeners : {
+        /*
         onReady: { 
             func: function(that){
                     that.lcdRefresh();
@@ -239,6 +243,7 @@ fluid.defaults("adam.midi.push", {
             },
             args: ["{that}"]
         },
+        */
         noteOn : {
             funcName: "adam.midi.push.noteToEvents",
             args: ["{that}", "{arguments}.0"]
@@ -345,25 +350,19 @@ adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
 
 ///// TODO FIX THIS 
 //    map button to the buttons in the midi 
-/*
-adam.midi.push.buttonWrite = function (that, button, colour = 1){
-    var midimessage = {type: "control", channel: 0, number: button , value: colour}
-    that.send(midimessage);
-};
-*/
 
 // idea rename to buttonstate?
 // gridquencer.push.applier.change("buttons.quarter", 2)
 adam.midi.push.buttonWrite = function (that, buttons, oldstate){
     var buttonMapping = {
         quarter: 36,
-        quartertriplet: 37,
-        eighthtriplet: 39,
+        quartertuple: 37,
+        eighthtuple: 39,
         eighth: 38,
         sixteenth: 40,
-        sixteenthtriplet: 41,
+        sixteenthtuple: 41,
         thirtysecond: 42,
-        thitysecondtriplet: 43,
+        thitysecondtuple: 43,
         left: 44, 
         right: 45, 
         down: 47, 
@@ -373,12 +372,18 @@ adam.midi.push.buttonWrite = function (that, buttons, oldstate){
         duplicate: 88,
         automation: 89,
         note: 50, 
-        session: 51 
+        session: 51,
+        undo: 119,
+        shift: 49,
+        addTrack: 53,
+        select: 48,
+        device: 110,
+        mute: 60
     };
 
     var midimessage = {type: "control", channel: 0, number: 36, value: 1};
 
-    for ( let b in buttons ){
+    for ( let b in buttonMapping ){
         midimessage.number = buttonMapping[ b ];
         midimessage.value = buttons[ b ];
         that.send( midimessage );
@@ -408,7 +413,7 @@ adam.midi.push.knobsToString = function (that ){
     for ( let i = 0; i < 8 ; i++ ){
         currentknobstring = that.model['knob' + (i + 1)].value.toString();
         currentknobstring = currentknobstring.padStart(8 + i%2  , ' ');
-        console.log(currentknobstring);
+        //console.log(currentknobstring);
         knobstring += currentknobstring;
     }
 
@@ -420,7 +425,7 @@ adam.midi.push.knobsToString = function (that ){
         currentknobstring = that.model['knob' + (i + 1)].name.toString();
         currentknobstring = currentknobstring.substring(0, 7+i%2);
         currentknobstring = currentknobstring.padStart( 8 + i%2  , ' ');
-        console.log(currentknobstring);
+        //console.log(currentknobstring);
         knobstring += currentknobstring;
     }
 

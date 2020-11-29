@@ -7,6 +7,7 @@ fluid.defaults("adam.pushquencer", {
         midipayload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 36, velocity: 100}},
         selectedpayload: undefined,
         selectedtarget: undefined,
+        selectedsequence: undefined,
     },
     invokers: {
         poppy: {
@@ -15,10 +16,7 @@ fluid.defaults("adam.pushquencer", {
         }
     },
     components: {
-        //ES9midiout: {},
-        //EIEmidiout: {},
-        //flockingtimedgate
-        midiout: {
+        ES9midiout: {
             type: "flock.midi.connection",
             options: {
                 openImmediately: true,
@@ -29,40 +27,57 @@ fluid.defaults("adam.pushquencer", {
                 }
             }
         },
+        mirack: {
+            type: "flock.midi.connection",
+            options: {
+                openImmediately: true,
+                ports: {
+                    output: {
+                        name: "miRack Input"
+                    }
+                }
+            }
+        },
         ticksynth: {
             type: "adam.ticksynth"
         }
     },
     listeners: {
-        onCreate: {
+        "onCreate.setTempo": {
+            funcName: "{that}.setTempo",
+            args: "{that}.model.bpm"
+        },
+        "onCreate.setupKnobs": {
             func : function(that){
-                that.push.model.tempoKnob = that.model.bpm;
+                that.push.model.tempoKnob.value = that.model.bpm;
+                console.log( that.push.model.tempoKnob );
                 that.model.selectedpayload = that.model.midipayload;
-                that.model.selectedtarget = that.midiout;
+                that.model.selectedtarget = that.ES9midiout;
             },
             args: "{that}"
         },
-        /*
-        onReady: {
+        "{push}.events.onReady": {
             func: function(that){
+                that.push.padClearAll();
+                that.push.buttonClearAll();
+                //that.push.lcdClearAll();
+                that.push.lcdRefresh();
+                that.push.applier.change("buttons.quartertuple", 126);
             },
             args: "{that}"
         },
-        */
         "{that}.events.beat": {
             func: console.log,
             args: "{arguments}.0"
         },
         "{push}.events.tempoKnob": {
-            funcName: "{that}.setTempo",
-            args: "{push}.model.tempoKnob"
+            func: function( that, knobval ){ that.model.bpm += knobval; that.setTempo( that.model.bpm ); },
+            args: ["{that}", "{arguments}.0"]
         },
-        /*
-        "{push}.events.tempoKnob": {
-            func: console.log,
-            args: "{push}.model.tempoKnob"
+        "{push}.events.knob2": {
+            funcName: "adam.pushquencer.knobsToPayload",
+            args: ["{arguments}.0", "{push}.model.knob2", "{that}"]
         },
-        */
         "{push}.events.buttonPlayPressed": {
             funcName: "{that}.play",
         },
@@ -129,36 +144,45 @@ fluid.defaults("adam.pushquencer", {
             },
             args: [ "{that}", "{arguments}.0" ]
         },
-        // todo add more functionality here
+        // todo  when cell selected payload goes to the knobs and is changeable
         "{that}.events.selectcell": {
             func: function(that, pos){
-                that.sequencergrid.model.selectedcell = pos;
-                let seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
+                that.sequencergrid.applier.change("selectedcell", pos);
                 
-                // get the payload
-                //console.log( typeof seq.getlocationpayload( pos ) );
-                let string = fluid.prettyPrintJSON( seq.getlocationpayload(pos) );
-                console.log( string );
+                let seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
+                let payload = seq.getlocationpayload( pos );
 
-                // todo put the payload on the knobs
-                //
                 // format the lcd
-                //
-                // link the knobs to the payload
-                // for things in payload, put knobs on top
+                if ( typeof payload  === "number" ){
+                    console.log("it's a number");
+                    that.push.applier.change('lcdline1', ''); 
+                    that.push.applier.change('lcdline2', '');
+                }
+                if ( typeof payload === "object" ){
 
+                    // change names of knobs
+                    Object.keys( payload ).forEach(function(key, i){
+                        that.push.applier.change('knob' + (i + 1) + ".name", key ); 
+                        that.push.applier.change('knob' + (i + 1) + ".value", payload[key]); 
+                    });
+                    
+                    adam.pushquencer.payloadToLCD( that, payload );
+                }
+                
             },
             args: ["{that}", "{arguments}.0"]
         }
     },
-    /*
     modelListeners: {
-        "{sequencergrid}.model.selectedcell": { // not firing, why?
+        "{sequencergrid}.model.selectedcell": { 
             func: console.log,
-            args: "{that}.model.selectedcell"
+            args: "test"
+        },
+        "{push}.model.knob1.value": {
+            func: console.log,
+            args: "afadfadfaf"
         }
     }
-    */
 });
 
 adam.pushquencer.regionToSequence = function(that, stepz){
@@ -191,7 +215,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
 
         console.log('successful add');
 
-        //// todo fix this  ->  create function that maps the sequencergrid to the ableton grid
+        //// todo fix this  ->  create function that maps the sequencergrid to the push grid
         ///that.sequencergrid.applier.change("grid", stepz);
 
         for ( let step of stepz ){
@@ -261,10 +285,69 @@ adam.pushquencer.popSequence = function(that){
 }
 
 adam.pushquencer.buttonHandler = function (that, button){
-    if ( button === 118 ){
+    if ( button === 119){
         adam.pushquencer.popSequence( that );
         return;
+    }
+    if ( button === 118 ){
+        // todo 
+        // check if delete mode  then set or unset
+        that.push.applier.change("buttons.deletebutton", 127);
+        return;
+    }
+    if ( button === 36 ){
+        that.push.applier.change("buttons.quarter", 127);
+        return; 
     }
 
     console.log( button );
 }
+
+/// todo make generalized for all knobs
+adam.pushquencer.knobsToPayload = function(knobval, knob, that){
+    knob.value += knobval; 
+    knob.value = clamp( knob.value, knob.min, knob.max );
+    //console.log( knob );
+
+    console.log(that.sequencergrid.model.selectedcell);
+    that.applier.change("knob2.value", knob.value);
+};
+
+//  todo cleanup
+adam.pushquencer.formatPayloadToLCDString = function( payload ){
+    let strings = [];
+    let knobstring = '';
+    let currentknobstring = '';
+    let valstring = '';
+
+    let i = 0;
+    for (let key in payload ){
+        let currentknobstring = key.toString();
+        currentknobstring = currentknobstring.substring(0, 7+i%2);
+        currentknobstring = currentknobstring.padStart( 8 + i%2  , ' ');
+
+        currentvalstring = payload[key].toString();;
+        currentvalstring = currentvalstring.substring(0, 7+i%2);
+        currentvalstring = currentvalstring.padStart( 8 + i%2  , ' ');
+
+        valstring += currentvalstring;
+        knobstring += currentknobstring;
+        i++;
+    }
+    strings.push(valstring);
+    strings.push(knobstring);
+
+    return strings;
+};
+
+adam.pushquencer.payloadToLCD = function( that, payload ){
+
+    let strings = adam.pushquencer.formatPayloadToLCDString( payload );
+
+    that.push.applier.change('lcdline1', strings[0]); // todo too close together? 
+    setTimeout( function(){
+        that.push.applier.change('lcdline2', strings[1]);
+    },
+        10
+    ); 
+};

@@ -34,10 +34,12 @@ fluid.defaults("adam.pushgridmapper", {
         },
     },
     listeners: {
-        onCreate: {
+        /*
+        "{push}.events.onReady": {
             funcName: "adam.midi.push.knobsToString",
             args: '{push}'
         },
+        */
         "{push}.events.padPushed": {
             funcName: "adam.midi.push.gridNoteOn",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2", ]
@@ -61,6 +63,7 @@ fluid.defaults("adam.pushgridmapper", {
             },
             args: "{that}"
         },
+        /*
         "{push}.events.knob1": {
             funcName: "adam.midi.push.knobsToString",
             args: "{push}"
@@ -95,7 +98,6 @@ fluid.defaults("adam.pushgridmapper", {
        },
     
     
-        /*
         selectcell: {
             func: function(that, cell){
                 if(that.model.selectedcell !== undefined){
@@ -150,30 +152,10 @@ fluid.defaults("adam.pushgridmapper", {
        },
        */
     },
-    invokers: {
-        /*
-        gridmapping: {
-            func: function(that, region){
-                if ( Array.isArray(region) ){
-                }else{
-                }
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-
-        notemapping: {
-            func: function(that, note){
-                // selectedsynth.noteOn(note);
-            },
-            args: ["{that}", "{arguments}.0"]
-        }
-        */
-    }
 });
 
 ///////  abstrsact to only define grid ragions
 adam.midi.push.gridNoteOn = function(that, pos, velocity){
-
 
     ///TODO: decouple message from mapping to sequence adding
     // todo check for overlapping
@@ -256,6 +238,7 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
     that.options.notedown = undefined;
 };
 
+/*
 //------------------------------------------
 // grid to push mappings
 //------------------------------------------
@@ -275,3 +258,4 @@ fluid.defaults("adam.pushState", {
     invokers: {}
 });
 
+*/

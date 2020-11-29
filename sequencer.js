@@ -215,6 +215,14 @@ fluid.defaults("adam.sequencer",{
                         for ( let s of that.model.sequences){
                             if ( Object.keys(s.model.steps).length === 1 ){
                                 that.push.padWrite( s.model.steps[0].location.row, s.model.steps[0].location.column );
+
+                                // hack todo make a better solution
+                                if (s.model.steps[0].args.type === "noteOn"){
+                                    let noteOff = fluid.copy(s.model.steps[0].args);
+                                    noteOff.type = "noteOff";
+                                    s.model.target[s.model.steps[0].func](noteOff);
+                                }
+                                // end noteoff hack
                             }
                         }
                     }
@@ -250,7 +258,6 @@ fluid.defaults("adam.sequencer",{
                                 }else{
                                     target.set(payload);
                                 }
-                                // todo better solution for single steps so that they still blink on activation? 
                                 if ( Object.keys(s.model.steps).length > 1){
                                     s.model.previousstep = s.model.steps[thetick];
                                 }

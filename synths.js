@@ -3,6 +3,100 @@
  * TODO Spread parameters across the knobs with values and labels? 
 */
 
+fluid.defaults("adam.testout", {
+    gradeNames: "flock.synth",
+    model: {
+        channel: 1
+    },
+
+    synthDef: {
+        id: "out",
+        ugen: "flock.ugen.out",
+        expand: 1,
+        sources: {
+            ugen: "flock.ugen.sinOsc",
+            freq: 300,
+            mul: {
+                ugen: "flock.ugen.timedGate",
+                duration: 0.1,
+                trigger: {
+                    id: "trig",
+                    ugen: "flock.ugen.valueChangeTrigger",
+                }
+            }
+
+        }
+    },
+
+    listeners: {
+        "onCreate.setbus": {
+            funcName: "{that}.set",
+            args: ["out.bus", "{that}.model.channel"]
+        },
+        "onCreate.getbus": {
+            func: function(that){ console.log ( that.get("out.bus")) },
+            args: "{that}" 
+        },
+        "onCreate.enviro": {
+            func: function(that){console.log(flock.environment.busManager) },
+            args: "{that}" 
+        },
+    },
+
+    invokers: {
+        trig: {
+            func: "{that}.set",
+            args: ["trig.source", Math.random()]
+        }
+    }   
+
+});
+
+
+fluid.defaults("adam.gateout", {
+    gradeNames: "flock.synth",
+    model: {
+        channel: 11
+    },
+
+    synthDef: {
+        id: "out",
+        ugen: "flock.ugen.out",
+        expand: 1,
+        sources: {
+            ugen: "flock.ugen.timedGate",
+            duration: 0.1,
+            trigger: {
+                id: "trig",
+                ugen: "flock.ugen.valueChangeTrigger",
+            }
+
+        }
+    },
+
+    listeners: {
+        "onCreate.setbus": {
+            funcName: "{that}.set",
+            args: ["out.bus", "{that}.model.channel"]
+        },
+        "onCreate.getbus": {
+            func: function(that){ console.log ( that.get("out.bus")) },
+            args: "{that}" 
+        }
+    },
+
+    invokers: {
+        trig: {
+            func: "{that}.set",
+            args: ["trig.source", Math.random()]
+        }
+    }
+
+});
+
+
+
+
 fluid.defaults("adam.ticksynth", {
     gradeNames: "flock.synth",
     model: {
@@ -40,10 +134,14 @@ fluid.defaults("adam.ticksynth", {
             args: ["{that}", "{arguments}.0"]
         },
         trig: {
+            func: "{that}.set",
+            args: {"osc.freq.start": 1000, "osc.freq.end": 0}
+            /*
             func: function(that){
                 that.set({"osc.freq.start": 1000, "osc.freq.end": 0});
             },
             args: ["{that}"]
+            */
         },
     }, 
 });
