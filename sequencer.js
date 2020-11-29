@@ -3,15 +3,17 @@ fluid.defaults("adam.sequence", {
     model: {
         steps: {},
         beats: 1, // do I really need this? sequencelength?
+        beatlength: 480,
         target: null, 
         mute: false,
         loop: false,
         sync: "tempo", // should a sequence start immediately or have a way of getting into sync?
-        direction: 1, // reverse, random, random-ish, nan
+        direction: "forward", // reverse, random, random-ish, nan
         playing: true,
         addingsequencetoselect: true,
+        sequenceticks: 0,
+        tick: 0, // not used yet. useful for retriggering
         //offset: 0,
-        //tickposition: null, // not used yet. useful for retriggering
         //currentstep: undefined,
         //previousstep: undefined,
         // steps are either change appliers for synth.set
@@ -57,14 +59,13 @@ fluid.defaults("adam.sequence", {
         },
         arraytosequence: {
             func: function(that, arr){
+                let beatlength = that.model.beatlength;
                 if (!Array.isArray(arr)){
                     console.log('warning: arrays must be used for sequences');
                     return -1;
                 }
 
                 // 480 is divisible by many divisions up to 20 without being too unwieldly for the clock
-                // TODO: should this come from the sequencer somehow?
-                const beatlength = 480;  
                 if( Array.isArray(arr[0])){ // multibeat sequence
                     that.model.beats = arr.length;
                     for (var b = 0; b < arr.length; b++){
@@ -80,8 +81,10 @@ fluid.defaults("adam.sequence", {
                         that.model.steps[steplength * i] = arr[i];
                     }
                 }
+
+                that.model.sequenceticks = that.model.beats * that.model.beatlength;
             },
-            args: ["{that}", "{arguments}.0"]
+            args: ["{that}", "{arguments}.0", "{arguments}.1"]
         },
         /*
            retrigger: function(){}, // placeholder

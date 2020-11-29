@@ -5,7 +5,7 @@
     "version": "0.0.1",
     "main": "main.js",
     "devDependencies": {
-        "electron": "4.0.1"
+        "electron": ">7.2.4"
     },
     "dependencies": {
         "flocking": "3.0.0-dev.20201125T044807Z.e93e401",

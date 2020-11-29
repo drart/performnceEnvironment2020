@@ -8,6 +8,7 @@ fluid.defaults("adam.pushquencer", {
         selectedpayload: undefined,
         selectedtarget: undefined,
         selectedsequence: undefined,
+        mode: 'tuple', // 'tuple' or 'cross'
     },
     invokers: {
         poppy: {
@@ -51,8 +52,10 @@ fluid.defaults("adam.pushquencer", {
             func : function(that){
                 that.push.model.tempoKnob.value = that.model.bpm;
                 console.log( that.push.model.tempoKnob );
-                that.model.selectedpayload = that.model.midipayload;
-                that.model.selectedtarget = that.ES9midiout;
+                //that.model.selectedpayload = that.model.midipayload;
+                //that.model.selectedtarget = that.ES9midiout;
+                that.model.selectedpayload = that.model.payload;
+                that.model.selectedtarget = that.ticksynth;
             },
             args: "{that}"
         },
@@ -87,9 +90,21 @@ fluid.defaults("adam.pushquencer", {
         },
         "{that}.events.regionCreated": {
             priority: "first",
+            nameSpace: "jfjkdkfjkd",
             funcName: "adam.pushquencer.regionToSequence",
             args: ["{that}", "{arguments}.0"]
         },
+        /*
+         todo. 
+        "{that}.events.regionCreated": {
+            nameSpace: "incrememtargs",
+            //funcName: "adam.pushquencer.regionToSequence",
+            //args: ["{that}", "{arguments}.0"]
+            func: console.log
+        },
+        */
+
+
         "{that}.events.overlapFound": {
             func: function( that, cellz ){
                 
@@ -204,6 +219,19 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     }
 
     let s = adam.sequence();
+
+    if( that.model.mode === 'cross'  ){
+        console.log(that.model.mode);
+        let numberofnotes;
+        if (stepz[0].length === undefined){
+            s.model.beatlength = stepz.length;      
+        }else{
+            s.model.beatlength = stepz[0].length;      
+        }
+        s.model.beatlength *= 120;
+    }
+    console.log(s.model.beatlength);
+
     s.arraytosequence(stepz);
     s.settarget( that.model.selectedtarget );
     s.model.loop = true;

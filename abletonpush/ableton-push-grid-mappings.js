@@ -1,5 +1,4 @@
 /// requires utils.js
-
 //// todo 
 // writes to hardward should instead call to state and let changeappliers work
 fluid.defaults("adam.pushgridmapper", {
@@ -36,6 +35,7 @@ fluid.defaults("adam.pushgridmapper", {
     listeners: {
         /*
         "{push}.events.onReady": {
+            nameSpace: "setupKnobs",
             funcName: "adam.midi.push.knobsToString",
             args: '{push}'
         },
@@ -97,30 +97,6 @@ fluid.defaults("adam.pushgridmapper", {
             args: "{push}"
        },
     
-    
-        selectcell: {
-            func: function(that, cell){
-                if(that.model.selectedcell !== undefined){
-                    that.push.padWrite(that.model.selectedcell.row, that.model.selectedcell.column, 1); ///// 
-                    that.model.lastselectedcell === that.model.selectedcell;
-                }
-                that.model.selectedcell = cell;
-                that.push.padWrite(cell.row, cell.column, 13);
-
-                // TODO make this better
-                //a.model.sequences[0].setlocationpayload(that.model.selectedcell, 100);
-            },
-            args: ["{that}", "{arguments}.0"]
-        },
-        setcellpayload: {
-            func: function(that, cell, payload){ // seq instead of that?
-                a.model.selectedsequence.setlocationpayload( cell, payload ); // todo: this should be for the grid not the sequence...
-            },
-            args: ["{that}", "{arguments}.0", "{arguments}.1"]
-        },
-        */
-        
-        /*
         // rethink this
         setdeletemode: {
             func: function(that, val){
