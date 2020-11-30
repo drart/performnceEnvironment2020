@@ -239,7 +239,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     // todo finish here and create different funtions for new or revising
 
     if( that.addsequence(s) ){ // check for overlap
-        that.selectsequence(s);
+        //that.selectsequence(s); // this gets done in the sequencer by checking addingsequencetoselect
 
         console.log('successful add');
 
@@ -324,7 +324,15 @@ adam.pushquencer.buttonHandler = function (that, button){
         return;
     }
     if ( button === 36 ){
+        that.model.mode = 'cross';
         that.push.applier.change("buttons.quarter", 127);
+        that.push.applier.change("buttons.quartertuple", 1);
+        return; 
+    }
+    if ( button === 37 ){
+        that.model.mode = 'tuple';
+        that.push.applier.change("buttons.quarter", 1);
+        that.push.applier.change("buttons.quartertuple", 127);
         return; 
     }
 

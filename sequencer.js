@@ -9,10 +9,10 @@ fluid.defaults("adam.sequence", {
         loop: false,
         sync: "tempo", // should a sequence start immediately or have a way of getting into sync?
         direction: "forward", // reverse, random, random-ish, nan
-        playing: true,
+        playing: false,
         addingsequencetoselect: true,
         sequenceticks: 0,
-        tick: 0, // not used yet. useful for retriggering
+        ticktime: 0, 
         //offset: 0,
         //currentstep: undefined,
         //previousstep: undefined,
@@ -188,18 +188,22 @@ fluid.defaults("adam.sequence", {
 
 fluid.defaults("adam.sequencer",{
     gradeNames: ["flock.synth", "fluid.modelComponent"],
+
     model: {
         bpm: 60,
         beatlength: 480,
         ticktime: 0,
         sequences: [],
         selectedsequence: null,
+        sequencestostart: [],
     },
+
     components: {
         thegrid: {
             type: "adam.grid",
         }
     },
+
     synthDef: {
         ugen: "flock.ugen.triggerCallback",
         trigger: {
@@ -216,7 +220,7 @@ fluid.defaults("adam.sequencer",{
                     }
                     if (that.model.ticktime % that.model.beatlength === that.model.beatlength / 2 ) {
                         for ( let s of that.model.sequences){
-                            if ( Object.keys(s.model.steps).length === 1 ){
+                            if ( Object.keys(s.model.steps).length === 1 && s.model.playing === true){
                                 that.push.padWrite( s.model.steps[0].location.row, s.model.steps[0].location.column );
 
                                 // hack todo make a better solution
@@ -231,41 +235,48 @@ fluid.defaults("adam.sequencer",{
                     }
 
                     for (let s of that.model.sequences){
-                        // TODO should ticktime be kept in the loop instead of the sequencer? 
-                        var thetick = (s.model.loop === true) ? that.model.ticktime % (that.model.beatlength * s.model.beats) : that.model.ticktime;
+                        
+                        let thetick;
+                        if (s.model.playing === true){
+
+                            thetick = (s.model.loop === true) ? that.model.ticktime % s.model.sequenceticks: that.model.ticktime;
+                        
+                            if(s.model.mute === true){
+                                s.model.ticktime++;
+                                continue;
+                            }
+                            
+                        }else{
+                            continue;
+                        }
 
                         /*
                         // TODO current step considering sequence direction
-                        if (typeof  s.model.direction  !== "number"){
-                        }else{ // if it isn't a number then random?
-                        thetick = Math.floor(Math.random(  s.beats * that.model.beatlength   ));
-                        };
                         */
 
-                        if ( s.model.steps[thetick] !== undefined && s.model.mute === false){
+                        if ( s.model.steps[thetick] !== undefined ){
                             const payload = s.model.steps[thetick];
                             const target = s.model.target;
 
-                            if(target && target.loop !== false){
-
-                                // todo if grid exisits then upadte it with payload location to be highlighted? 
-                                if(that.sequencergrid !== undefined){
-                                    that.push.padWrite( payload.location.row, payload.location.column, 30);
-                                    if (s.model.previousstep){
-                                        that.push.padWrite( s.model.previousstep.location.row, s.model.previousstep.location.column );
-                                    }
-                                }
-
-                                if(payload.func){
-                                    target[payload.func](payload.args);
-                                }else{
-                                    target.set(payload);
-                                }
-                                if ( Object.keys(s.model.steps).length > 1){
-                                    s.model.previousstep = s.model.steps[thetick];
+                            // todo if grid exisits then upadte it with payload location to be highlighted? 
+                            // todo move the pad updates to a separate function
+                            if(that.sequencergrid !== undefined){
+                                that.push.padWrite( payload.location.row, payload.location.column, 30);
+                                if (s.model.previousstep){
+                                    that.push.padWrite( s.model.previousstep.location.row, s.model.previousstep.location.column );
                                 }
                             }
+
+                            if(payload.func){
+                                target[payload.func](payload.args);
+                            }else{
+                                target.set(payload);
+                            }
+                            if ( Object.keys(s.model.steps).length > 1){
+                                s.model.previousstep = s.model.steps[thetick];
+                            }
                         }
+                        s.model.ticktime++;
                     }
                     that.model.ticktime++;
                 },
@@ -273,11 +284,25 @@ fluid.defaults("adam.sequencer",{
             }
         }
     },
+
     events: {
         barline: null,
         resync: null,
         beat: null,
     },
+
+    listeners: {
+        "beat.turnSequencesOn": {
+            func: function(that){
+                for ( s in that.model.sequencestostart){
+                    that.model.sequencestostart[s].model.playing = true; 
+                }
+                that.model.sequencestostart = [];
+            },
+            args: "{that}"
+        }
+    },
+
     invokers: {
         setTempo: {
             func: function(that, bpm){
@@ -351,8 +376,11 @@ fluid.defaults("adam.sequencer",{
                 }
 
                 //seq.model.currentstep = 0;
-                seq.model.playing = true; // todo: defer this to actual playing?
-                if(that.model.addingsequencetoselect){that.model.selectedsequence = seq };
+                //seq.model.playing = true; // todo: defer this to actual playing?
+
+                that.model.sequencestostart.push( seq );
+
+                if(seq.model.addingsequencetoselect === true){that.model.selectedsequence = seq ; console.log('squence was selected by adding');};
 
                 that.model.sequences.push(seq);
 

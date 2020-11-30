@@ -1,9 +1,3 @@
-[submodule "lib/Flocking"]
-	path = lib/Flocking
-	url = git@github.com:colinbdclark/Flocking.git
 [submodule "lib/artlib.js"]
 	path = lib/artlib.js
 	url = https://github.com/drart/artlib.js.git
-[submodule "lib/bergson"]
-	path = lib/bergson
-	url = git@github.com:colinbdclark/bergson.git
