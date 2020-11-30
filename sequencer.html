@@ -29,6 +29,7 @@
     <button id="playbutton" onclick="flock.enviro.shared.play()"> Play </button>
     <select id="midi-outputs"></select>
     <div id="audiosystem"></div>
+    <div id="beat-display"></div>
     <script>
 
         var gridquencer;
@@ -55,9 +56,9 @@
     </script>
 
     <ul>
-        <li> touch a step to edit its payload?</li>
         <li> adjust number of beats by touching first column</li>
         <li> touch sequence limits to edit sequence</li>
+        <li> create longpress events (potential solution for reducing multistep beat to single step?)</li>
         <li> make an api doc with list of functions and inputs</li>
         <li> gui - list of sequences and list of i/o</li>
         <li> map sequencergrid to pushgrid with modellistener </li>
@@ -72,6 +73,7 @@
         <li> offset by touching it (requires mode switching?) </li>
         <li> chain sequences </li>
         <li> think through tracks and sequences and instruments </li>
+        <li> <s>touch a step to edit its payload?</s></li>
         <li> <s>cross rhythms, poly temporal (sequencer sends message when a sync occurs?</s></li>
         <li> <s>change sequence length by ammending it </s></li>
         <li><s>change tempo</s></li>

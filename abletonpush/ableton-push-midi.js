@@ -3,6 +3,7 @@
 //
 fluid.defaults("adam.midi.push", {
     gradeNames: ["flock.midi.connection", "fluid.modelComponent"],
+
     sysex: true,
     openImmediately: true,
     ports: {
@@ -13,6 +14,10 @@ fluid.defaults("adam.midi.push", {
             name : "Ableton Push User Port"
         }
     },
+
+    knobResoution: 100,
+    knobIncrement: 1,
+
     model : {
         lcdline1: ' '.padEnd(68, ' '),
         lcdline2: ' '.padEnd(68, ' '),
@@ -84,7 +89,7 @@ fluid.defaults("adam.midi.push", {
         tempoKnob: { 
             name: "tempo",
             min: 0,
-            max: 100,
+            max: 300,
             value: 50,
             increment: 1
         },
@@ -135,11 +140,13 @@ fluid.defaults("adam.midi.push", {
             device: 1,
         }
     },
+
     components: {
         padGrid : {
             type: "adam.grid"
         }
     },
+
     modelListeners: {
         // wait until midi initializes?
         lcdline1: { 
@@ -167,6 +174,7 @@ fluid.defaults("adam.midi.push", {
             args: ["{that}", "{change}.value", "{change}.oldValue"] 
         }
     },
+
     events: {
         knobTouched: null,
         knobReleased: null,
@@ -190,6 +198,7 @@ fluid.defaults("adam.midi.push", {
         buttonPressed: null, 
         buttonReleased: null
     },
+
     invokers: {
         // LCD Handlers
         lcdClearLine: {
@@ -232,6 +241,7 @@ fluid.defaults("adam.midi.push", {
         },
         */
     },
+
     listeners : {
         /*
         onReady: { 
@@ -435,13 +445,12 @@ adam.midi.push.knobsToString = function (that ){
 //// TODO Fix with temp value  => change applier?
 adam.midi.push.controlToEvents = function(that, msg){
     if (msg.number > 70 && msg.number < 79){
+        // todo respect min and max for knob
         /// modelize this
-        //that.model["knob" + (msg.number-70)] += msg.value > 64 ? - (128-msg.value) : msg.value;
-        //that.model["knob" + (msg.number-70)] = adam.clamp( that.model["knob" + (msg.number-70)], 0, 100 ); 
-    
-        let knobval = msg.value > 64 ? - (128-msg.value) : msg.value;
+        that.model["knob" + (msg.number-70)].value += msg.value > 64 ? - (128-msg.value) : msg.value;
+        that.model["knob" + (msg.number-70)].value = adam.clamp( that.model["knob" + (msg.number-70)].value, 0, 100 ); 
 
-        that.events["knob" + (msg.number-70)].fire( knobval );
+        that.events["knob" + (msg.number-70)].fire( that.model["knob" + (msg.number-70)].value );
         return;
     }
     if (msg.number === 79){
