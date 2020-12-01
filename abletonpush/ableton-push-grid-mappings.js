@@ -171,17 +171,17 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     if(that.options.notedown === undefined){ return; };
 
-    /*
-    let step = {}; 
-    let stepz = [];
-    step = {};
-    step.location = pos;
-    stepz = [step];
-    */
-
     if ( testTwoObjects(pos, that.options.notedown) ){ 
-        // if single button is pressed, no region defined
-        if ( that.sequencergrid.checkcelloverlap( pos )) {
+
+        if ( !that.sequencergrid.checkcelloverlap( pos )) {
+            console.log(' non overlap single' );
+            //that.events.selectcell.fire( pos );
+            let step = {};
+            stepz = [];
+            step.location = pos;
+            stepz = [step];
+            that.events.regionCreated.fire( stepz );
+        }else{
             that.events.selectcell.fire( pos );
         }
 

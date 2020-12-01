@@ -16,7 +16,11 @@ fluid.defaults("adam.pushquencer", {
         poppy: {
             funcName: "adam.pushquencer.popSequence",
             args: "{that}"
-        }
+       },
+       fouronthefloor: {
+            funcName: "adam.pushquencer.fouronthefloordemo",
+            args: "{that}"
+       }
     },
 
     components: {
@@ -45,9 +49,11 @@ fluid.defaults("adam.pushquencer", {
         ticksynth: {
             type: "adam.ticksynth"
         },
+        /*
         gatesynth: {
             type: "adam.gateout"
         }
+        */
     },
 
     listeners: {
@@ -308,7 +314,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     }
 
     // todo move this to a post action?
-    that.model.midipayload.args.note++;
+    //that.model.midipayload.args.note++;
 };
 
 adam.pushquencer.removeSequence = function(that, removedseq){
@@ -374,6 +380,15 @@ adam.pushquencer.buttonHandler = function (that, button){
         }
         return; 
     }
+    if (button === 46){
+        that.model.midipayload.args.note++;
+        return;
+    }
+    if (button === 47){
+        that.model.midipayload.args.note--;
+        return;
+    }
+
 
     console.log( button );
 }
@@ -437,3 +452,32 @@ adam.pushquencer.payloadToLCD = function( that, payload ){
         10
     ); 
 };
+
+adam.pushquencer.fouronthefloordemo = function(that){
+
+    var fouronthefloor = [];
+    let kick= {func: "send", location: {row: 0, column: 0}, args:{type: "noteOn", channel: 9, note: 36, velocity: 100}};
+    let snare = {func: "send", location: {row: 0, column: 0}, args:{type: "noteOn", channel: 9, note: 37, velocity: 100}};
+    let hh = {func: "send", location: {row: 0, column: 0}, args:{type: "noteOn", channel: 9, note: 38, velocity: 100}};
+    let nt = {func: "send", location: {row: 0, column: 0}, args:{type: "noteOn", channel: 9, note: 100, velocity: 0}};
+
+    for (let i = 0; i < 4; i++){
+        let steparray = [];
+        for (let k = 0; k < 4; k++ ){
+            let step;
+            if ( k !== 0 ){
+                step = fluid.copy( kick );
+            }else{
+                step = fluid.copy( nt );
+            }
+
+            step.location.row = i;
+            step.location.column = k;
+            steparray[k] = step;
+        }
+        fouronthefloor[i] = steparray;
+    }
+    that.events.regionCreated.fire(fouronthefloor);
+
+};
+

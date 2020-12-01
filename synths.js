@@ -55,9 +55,11 @@ fluid.defaults("adam.testout", {
 
 fluid.defaults("adam.gateout", {
     gradeNames: "flock.synth",
+
     model: {
         channel: 11,
-        duration: 0.1
+        duration: 0.1,
+        incrementor: 0
     },
 
     synthDef: {
@@ -80,18 +82,17 @@ fluid.defaults("adam.gateout", {
             funcName: "{that}.set",
             args: ["out.bus", "{that}.model.channel"]
         },
-        /*
         "onCreate.getbus": {
-            func: function(that){ console.log ( that.get("out.bus")) },
+            func: function(that){ console.log ( that.get("out.bus")) }, // todo if that.model.channel > numberOfBusses then throw warning
             args: "{that}" 
         }
-        */
     },
 
     invokers: {
         trig: {
             func: "{that}.set",
             args: ["trig.source", Math.random()] // todo make this an incrementer
+            //args: ["trig.source", that.model.incrementor++ ] 
         },
         setChannel: {
             func: "{that}.set",
@@ -99,7 +100,7 @@ fluid.defaults("adam.gateout", {
         },
         setDuration: {
             func: "{that}.set",
-            args: ["out.source.duration", "{arguments}.0"]
+            args: ["out.sources.duration", "{arguments}.0"]
         }
     }
 
