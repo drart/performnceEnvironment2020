@@ -56,7 +56,8 @@ fluid.defaults("adam.testout", {
 fluid.defaults("adam.gateout", {
     gradeNames: "flock.synth",
     model: {
-        channel: 11
+        channel: 11,
+        duration: 0.1
     },
 
     synthDef: {
@@ -88,7 +89,15 @@ fluid.defaults("adam.gateout", {
     invokers: {
         trig: {
             func: "{that}.set",
-            args: ["trig.source", Math.random()]
+            args: ["trig.source", Math.random()] // todo make this an incrementer
+        },
+        setChannel: {
+            func: "{that}.set",
+            args: ["out.bus", "{arguments}.0"]
+        },
+        setDuration: {
+            func: "{that}.set",
+            args: ["out.source.duration", "{arguments}.0"]
         }
     }
 
