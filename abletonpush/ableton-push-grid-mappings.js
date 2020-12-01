@@ -10,6 +10,7 @@ fluid.defaults("adam.pushgridmapper", {
         selectedcell: undefined,
         lastselectedcell: undefined,
     },
+
     components: { 
         push: {
             type: "adam.midi.push",
@@ -18,13 +19,16 @@ fluid.defaults("adam.pushgridmapper", {
             type: "adam.grid",
         }
     },
+
     events: {
         regionCreated: null,
         selectcell: null,
         gridaction: null,
         overlapFound: null
     },
+
     notedown: undefined,
+
     modelListeners: {
         "{sequencergrid}.model.grid": {
             func: console.log,
@@ -32,6 +36,7 @@ fluid.defaults("adam.pushgridmapper", {
             args: 'grid change applier fired'
         },
     },
+
     listeners: {
         /*
         "{push}.events.onReady": {
@@ -64,39 +69,6 @@ fluid.defaults("adam.pushgridmapper", {
             args: "{that}"
         },
         /*
-        "{push}.events.knob1": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob2": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob3": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob4": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob5": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob6": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob7": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-        "{push}.events.knob8": {
-            funcName: "adam.midi.push.knobsToString",
-            args: "{push}"
-       },
-    
         // rethink this
         setdeletemode: {
             func: function(that, val){
@@ -130,12 +102,14 @@ fluid.defaults("adam.pushgridmapper", {
     },
 });
 
-///////  abstrsact to only define grid ragions
+///////  abstrsact to only define grid regions
 adam.midi.push.gridNoteOn = function(that, pos, velocity){
 
     ///TODO: decouple message from mapping to sequence adding
     // todo check for overlapping
     //if (that.options.notedown !== undefined && that.options.notedown !== msg.note){
+    //
+
     if (that.options.notedown !== undefined ){
 
         var startpoint, endpoint; 
@@ -156,15 +130,18 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
                 stepz.push([]);// mutli beat row
             }
             for (let c = startpoint.column; c <= endpoint.column; c++){
-                //let payload = {"func": "trig", "args": 1000};
-                let payload = {};
-                payload.location = {row: r, column: c}; 
+                let thecell = {};
+                console.log(thecell); //// todo I do not understand how func shows up in thecell object after the next line
+                thecell.location = {row: r, column: c}; 
+                console.log(thecell);
 
                 if(endpoint.row === startpoint.row){
-                    stepz.push(payload); // single beat sequence 
+                    stepz.push(thecell); // single beat sequence 
+                    console.log(thecell);
                 }else{
 
-                    stepz[r-startpoint.row].push(payload); //multi beat sequence
+                    stepz[r-startpoint.row].push(thecell); //multi beat sequence
+                    console.log(thecell);
                 }
             }
         }
@@ -172,10 +149,12 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
         ///// test overlap    if no overlap then create region, otherwise look for grid mofiication or highlight
         if ( that.sequencergrid.checkzoneoverlap( stepz ) ){
             console.log('zone overlap, do seomthing rational here'); 
+            console.log(stepz);
             // todo first overlapping cell should be the selectedcell
             // todo if the first cell of the new region is the first beat of an existing region then amend beat
             that.events.overlapFound.fire( stepz );
         }else{
+            console.log(stepz);
             that.events.regionCreated.fire( stepz );
         }
 
@@ -184,6 +163,7 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
     }else{
 
         that.options.notedown = pos;
+
     };
 };
 
@@ -191,25 +171,34 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     if(that.options.notedown === undefined){ return; };
 
-    if ( testTwoObjects(pos, that.options.notedown) ){ // should always be true 
+    /*
+    let step = {}; 
+    let stepz = [];
+    step = {};
+    step.location = pos;
+    stepz = [step];
+    */
 
-        let payload = {};
-        payload.location = pos;
-
-        stepz = [payload];
-
-        //that.events.regionCreated.fire( stepz );
+    if ( testTwoObjects(pos, that.options.notedown) ){ 
+        // if single button is pressed, no region defined
+        if ( that.sequencergrid.checkcelloverlap( pos )) {
+            that.events.selectcell.fire( pos );
+        }
 
     }else{
-        console.log('something went wrong');
+        console.log('appending a sequence');
+        console.log(pos);
+        //that.events.regionCreated.fire( stepz );
     }
 
+    /*
     if( that.sequencergrid.checkcelloverlap( stepz[0].location )){
         //that.sequencergrid.model.selectedcell = pos; // todo should be done in the sequencer mappings
         that.events.selectcell.fire( pos );
     }else{
-        that.events.regionCreated.fire( stepz );
+        //that.events.regionCreated.fire( stepz );
     }
+    */
 
     that.options.notedown = undefined;
 };

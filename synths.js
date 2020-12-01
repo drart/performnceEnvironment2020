@@ -80,10 +80,12 @@ fluid.defaults("adam.gateout", {
             funcName: "{that}.set",
             args: ["out.bus", "{that}.model.channel"]
         },
+        /*
         "onCreate.getbus": {
             func: function(that){ console.log ( that.get("out.bus")) },
             args: "{that}" 
         }
+        */
     },
 
     invokers: {

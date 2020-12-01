@@ -8,6 +8,7 @@ fluid.defaults("adam.pushquencer", {
         selectedpayload: undefined,
         selectedtarget: undefined,
         selectedsequence: undefined,
+        deletemode: false,
         mode: 'tuple', // 'tuple' or 'cross'
     },
 
@@ -43,6 +44,9 @@ fluid.defaults("adam.pushquencer", {
         },
         ticksynth: {
             type: "adam.ticksynth"
+        },
+        gatesynth: {
+            type: "adam.gateout"
         }
     },
 
@@ -57,6 +61,7 @@ fluid.defaults("adam.pushquencer", {
                 that.model.selectedtarget = that.ES9midiout;
                 //that.model.selectedpayload = that.model.payload;
                 //that.model.selectedtarget = that.ticksynth;
+                //that.model.selectedtarget = that.gatesynth;
             },
             args: "{that}"
         },
@@ -143,6 +148,7 @@ fluid.defaults("adam.pushquencer", {
 
 
         "{that}.events.overlapFound": {
+            //priority: "last",
             func: function( that, cellz ){
                 
                 if ( Array.isArray( cellz[0] ) ){
@@ -156,39 +162,43 @@ fluid.defaults("adam.pushquencer", {
                     console.log(locationfirstcell);
                     console.log(locationlastcell);
 
-                    //if( testTwoObjects( locationfirstcell, 
-
                     // select all the first beats to do something
                     return;
                 }else {
-                    // todo check this amendment doesn't overlap with an existing seq/
+
                     let foundseq = that.thegrid.getcell( cellz[0].location );
                     let overlappingstep = foundseq.getStepFromLocation ( cellz[0].location ) ;
                     
                     if ( !foundseq.isStepOnBeat( overlappingstep )){
-                        console.log( ' step not ok beat, exiting ' );
+                        console.log( ' step not on beat, exiting ' );
                         return;
                     }
 
                     let newseq = adam.sequence();
+                    //let payload = foundseq.getlocationpayload( overlappingstep.location );
                     for ( let cell of cellz  ){
-                        Object.assign( cell, that.model.midipayload );
-                        /// todo get payload from step and put it in the revision
+                        let newstep = fluid.copy(overlappingstep);
+                        newstep.location = cell.location;
+                        Object.assign( cell, newstep);
                     }
+                    //console.log('after');
+                    //console.log(cellz);
                     newseq.arraytosequence(cellz);
-                    newseq.settarget( that.midiout );
+                    //newseq.settarget( that.model.target );
 
                     //console.log( foundseq.getStepBeat( overlappingstep ) );
                     //console.log( overlappingstep ) ;
 
-                    let somebeat = foundseq.getStepBeat( overlappingstep  ) ;
-                    let removedsteps = foundseq.reviseBeat( newseq, somebeat );
+                    let overlappingbeat = foundseq.getStepBeat( overlappingstep  ) ;
+                    let removedsteps = foundseq.reviseBeat( newseq, overlappingbeat);
 
                     for ( let step of removedsteps ){
                         that.sequencergrid.removecell( step.location );
+                        that.thegrid.removecell( step.location );
                     }
                     for (let cell of cellz){
                         that.sequencergrid.addcell( cell.location, 1 );
+                        that.thegrid.addcell( cell.location, foundseq );
                     }
                     that.sequencergrid.events.gridChanged.fire();
 
@@ -199,8 +209,9 @@ fluid.defaults("adam.pushquencer", {
         "{that}.events.selectcell": {
             func: function(that, pos){
                 that.sequencergrid.applier.change("selectedcell", pos); // todo do I need this here? 
+                console.log(pos);
 
-                let seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
+                let seq = that.thegrid.getcell ( pos ); // todo bug doesn't work for ammended sequences.
                 let payload = seq.getlocationpayload( pos );
 
                 // format the lcd
@@ -241,8 +252,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
 
     var thepayload = fluid.copy( that.model.selectedpayload);
 
-    // todo move this to a post action?
-    that.model.midipayload.args.note++;
+    console.log(stepz);
 
     for (let row of stepz){ 
         if (row.length !== undefined){
@@ -257,6 +267,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
 
     let s = adam.sequence();
 
+    // todo add more options for beatlengths
     if( that.model.mode === 'cross'  ){
         console.log(that.model.mode);
         let numberofnotes;
@@ -267,16 +278,15 @@ adam.pushquencer.regionToSequence = function(that, stepz){
         }
         s.model.beatlength *= 120;
     }
-    console.log(s.model.beatlength);
+    //console.log(s.model.beatlength);
 
-    s.arraytosequence(stepz);
+    s.arraytosequence( stepz );
     s.settarget( that.model.selectedtarget );
     s.model.loop = true;
 
     // todo finish here and create different funtions for new or revising
 
     if( that.addsequence(s) ){ // check for overlap
-        //that.selectsequence(s); // this gets done in the sequencer by checking addingsequencetoselect
 
         console.log('successful add');
 
@@ -296,33 +306,10 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     }else{
         console.log('something went wrong adding a sequence');
     }
+
+    // todo move this to a post action?
+    that.model.midipayload.args.note++;
 };
-
-/*
-adam.pushquencer.addlights = function (that, seq ){
-    if( that.addsequence(s) ){ // check for overlap
-        that.selectsequence(s);
-
-        console.log('successful add');
-
-        //// todo fix this  ->  create function that maps the sequencergrid to the ableton grid
-        ///that.sequencergrid.applier.change("grid", stepz);
-
-        for ( let step of stepz ){
-            if ( step.length !== undefined ){
-                for ( let substep of step ){ /// for multibeat sequences
-                    that.sequencergrid.addcell( substep.location, 1 );
-                }
-            }else{
-                that.sequencergrid.addcell( step.location, 1 );
-            }
-        }
-        that.sequencergrid.events.gridChanged.fire(); 
-    }else{
-        console.log('something went wrong adding a sequence');
-    }
-};
-*/
 
 adam.pushquencer.removeSequence = function(that, removedseq){
     if (removedseq === undefined ){ // todo is there a way to check fluid types?
@@ -357,6 +344,7 @@ adam.pushquencer.buttonHandler = function (that, button){
     if ( button === 118 ){
         // todo 
         // check if delete mode  then set or unset
+        that.model.deletemode = !that.model.deletemode;
         that.push.applier.change("buttons.deletebutton", 127);
         return;
     }
@@ -372,6 +360,20 @@ adam.pushquencer.buttonHandler = function (that, button){
         that.push.applier.change("buttons.quartertuple", 127);
         return; 
     }
+    if ( button === 111 ){
+        that.sequencergrid.model.selectedcell = null;
+        adam.pushquencer.knobsToPayload(that);
+        return;
+    }
+    if ( button === 110 ){
+        // if target is midi then gate otherwise opposite
+        that.model.selectedtarget = that.gatesynth;
+        that.model.selectedpayload = that.model.payload;
+        if (that.model.selectedtarget === that.gatesynth){
+            console.log('alkjflkjdaf');
+        }
+        return; 
+    }
 
     console.log( button );
 }
@@ -383,14 +385,16 @@ adam.pushquencer.knobsToPayload = function(that){
     if (that.sequencergrid.model.selectedcell !== null){
         seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
         payload = seq.getlocationpayload( that.sequencergrid.model.selectedcell );
-
-        Object.keys(payload).forEach(function(key, i){
-            if (typeof payload[key] === "number"){
-                payload[key] = that.push.model["knob"+(i+1)].value;
-                console.log(that.push.model["knob"+(i+1)].value);
-            }
-        });
+    }else{
+        payload = that.model.selectedpayload.args;
     }
+
+    Object.keys(payload).forEach(function(key, i){
+        if (typeof payload[key] === "number"){
+            payload[key] = that.push.model["knob"+(i+1)].value;
+            console.log(that.push.model["knob"+(i+1)].value);
+        }
+    });
 
     adam.pushquencer.payloadToLCD(that, payload);
 };
