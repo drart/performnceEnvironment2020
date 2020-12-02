@@ -1,6 +1,7 @@
+Performance Environment 2020
+============================
 
-
-
+My live performance environment. This year is more developmental and less performative, given the world. I hope you are safe and well. 
 
 
 Things to check out: 

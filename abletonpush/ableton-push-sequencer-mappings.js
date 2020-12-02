@@ -466,7 +466,7 @@ adam.pushquencer.fouronthefloordemo = function(that){
         for (let k = 0; k < 4; k++ ){
             let step;
             if ( k !== 0 ){
-                step = fluid.copy( kick );
+                step = fluid.copy( nt);
             }else{
                 step = fluid.copy( nt );
             }

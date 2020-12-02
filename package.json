@@ -2,7 +2,7 @@
     "name": "performance-environment-2020",
     "productName": "Performance Environment 2020",
     "author": "Adam Tindale",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "main": "main.js",
     "devDependencies": {
         "electron": ">7.2.4"
