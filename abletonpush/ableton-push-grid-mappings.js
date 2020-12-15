@@ -1,6 +1,6 @@
 /// requires utils.js
 //// todo 
-// writes to hardward should instead call to state and let changeappliers work
+// writes to hardware should instead call to state and let changeappliers work
 fluid.defaults("adam.pushgridmapper", {
     gradeNames: ["fluid.modelComponent"], 
     model: {
@@ -32,6 +32,7 @@ fluid.defaults("adam.pushgridmapper", {
     modelListeners: {
         "{sequencergrid}.model.grid": {
             func: console.log,
+            excludeSource: "init",
             priority: "last",
             args: 'grid change applier fired'
         },
@@ -43,6 +44,9 @@ fluid.defaults("adam.pushgridmapper", {
             nameSpace: "setupKnobs",
             funcName: "adam.midi.push.knobsToString",
             args: '{push}'
+        },
+        "overlapfound.print": {
+            func: console.log,
         },
         */
         "{push}.events.padPushed": {
@@ -68,6 +72,7 @@ fluid.defaults("adam.pushgridmapper", {
             },
             args: "{that}"
         },
+
         /*
         // rethink this
         setdeletemode: {
@@ -90,6 +95,7 @@ fluid.defaults("adam.pushgridmapper", {
             args: ["{that}", "{arguments}.0"]
         } ,
         */
+
         /*
        gridaction: { 
            func: function(that, cell){
@@ -99,16 +105,16 @@ fluid.defaults("adam.pushgridmapper", {
            args: ["{that}"],
        },
        */
+
     },
 });
 
 ///////  abstrsact to only define grid regions
 adam.midi.push.gridNoteOn = function(that, pos, velocity){
 
-    ///TODO: decouple message from mapping to sequence adding
     // todo check for overlapping
-    //if (that.options.notedown !== undefined && that.options.notedown !== msg.note){
-    //
+    // idea let orientation from origin determine reverse?
+    // fire region {cells, origin, end}
 
     if (that.options.notedown !== undefined ){
 
@@ -121,7 +127,6 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
             startpoint = that.options.notedown;
         };
 
-        // todo better payload additions 
         var stepz = [];
         var beats = endpoint.row - startpoint.row + 1;
 
@@ -147,14 +152,13 @@ adam.midi.push.gridNoteOn = function(that, pos, velocity){
         }
 
         ///// test overlap    if no overlap then create region, otherwise look for grid mofiication or highlight
+        //console.log(stepz);
         if ( that.sequencergrid.checkzoneoverlap( stepz ) ){
             console.log('zone overlap, do seomthing rational here'); 
-            console.log(stepz);
             // todo first overlapping cell should be the selectedcell
             // todo if the first cell of the new region is the first beat of an existing region then amend beat
             that.events.overlapFound.fire( stepz );
         }else{
-            console.log(stepz);
             that.events.regionCreated.fire( stepz );
         }
 
@@ -171,14 +175,6 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
 
     if(that.options.notedown === undefined){ return; };
 
-    /*
-    let step = {}; 
-    let stepz = [];
-    step = {};
-    step.location = pos;
-    stepz = [step];
-    */
-
     if ( testTwoObjects(pos, that.options.notedown) ){ 
         // if single button is pressed, no region defined
         if ( that.sequencergrid.checkcelloverlap( pos )) {
@@ -191,36 +187,5 @@ adam.midi.push.gridNoteOff = function(that, pos, velocity){
         //that.events.regionCreated.fire( stepz );
     }
 
-    /*
-    if( that.sequencergrid.checkcelloverlap( stepz[0].location )){
-        //that.sequencergrid.model.selectedcell = pos; // todo should be done in the sequencer mappings
-        that.events.selectcell.fire( pos );
-    }else{
-        //that.events.regionCreated.fire( stepz );
-    }
-    */
-
     that.options.notedown = undefined;
 };
-
-/*
-//------------------------------------------
-// grid to push mappings
-//------------------------------------------
-fluid.defaults("adam.pushState", {
-    gradeNames: "fluid.modelComponent",
-    model: {
-        mode: "grid", // envelope, sequence, payload
-        colours: {
-            regionColour: 97,
-            selectedColour: 93,
-            beatColour: 99,
-        },
-    },
-    modelListeners:{},
-    listeners: {
-    },
-    invokers: {}
-});
-
-*/

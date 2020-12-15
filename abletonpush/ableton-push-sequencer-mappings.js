@@ -1,8 +1,10 @@
+// todo support for scenes
+
 fluid.defaults("adam.pushquencer", {
     gradeNames: ["adam.sequencer", "adam.pushgridmapper"],
     model: {
         bpm: 97,
-        /// todo modelize payloads?
+        /// todo modelize payloads
         payload: {"func": "trig", "args": 1000},
         midipayload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 36, velocity: 100}},
         selectedpayload: undefined,
@@ -10,6 +12,7 @@ fluid.defaults("adam.pushquencer", {
         selectedsequence: undefined,
         deletemode: false,
         mode: 'tuple', // 'tuple' or 'cross'
+        subdivision: 1/4
     },
 
     invokers: {
@@ -20,9 +23,11 @@ fluid.defaults("adam.pushquencer", {
     },
 
     components: {
+    
         ES9midiout: {
             type: "flock.midi.connection",
             options: {
+                payload: {"func": "send", "args" : {type: "noteOn", channel: 9, note: 36, velocity: 100}},
                 openImmediately: true,
                 ports: {
                     output: {
@@ -31,6 +36,7 @@ fluid.defaults("adam.pushquencer", {
                 }
             }
         },
+
         mirack: {
             type: "flock.midi.connection",
             options: {
@@ -42,9 +48,11 @@ fluid.defaults("adam.pushquencer", {
                 }
             }
         },
+
         ticksynth: {
             type: "adam.ticksynth"
         },
+    
         gatesynth: {
             type: "adam.gateout"
         }
@@ -166,7 +174,7 @@ fluid.defaults("adam.pushquencer", {
                     return;
                 }else {
 
-                    let foundseq = that.thegrid.getcell( cellz[0].location );
+                    let foundseq = that.sequencergrid.getcell( cellz[0].location );
                     let overlappingstep = foundseq.getStepFromLocation ( cellz[0].location ) ;
                     
                     if ( !foundseq.isStepOnBeat( overlappingstep )){
@@ -194,11 +202,11 @@ fluid.defaults("adam.pushquencer", {
 
                     for ( let step of removedsteps ){
                         that.sequencergrid.removecell( step.location );
-                        that.thegrid.removecell( step.location );
+                        //that.thegrid.removecell( step.location );
                     }
                     for (let cell of cellz){
-                        that.sequencergrid.addcell( cell.location, 1 );
-                        that.thegrid.addcell( cell.location, foundseq );
+                        //that.sequencergrid.addcell( cell.location, 1 );
+                        that.sequencergrid.addcell( cell.location, foundseq );
                     }
                     that.sequencergrid.events.gridChanged.fire();
 
@@ -211,7 +219,7 @@ fluid.defaults("adam.pushquencer", {
                 that.sequencergrid.applier.change("selectedcell", pos); // todo do I need this here? 
                 console.log(pos);
 
-                let seq = that.thegrid.getcell ( pos ); // todo bug doesn't work for ammended sequences.
+                let seq = that.sequencergrid.getcell ( pos ); // todo bug doesn't work for ammended sequences.
                 let payload = seq.getlocationpayload( pos );
 
                 // format the lcd
@@ -242,9 +250,6 @@ fluid.defaults("adam.pushquencer", {
             func: console.log,
             args: "selectedcell"
         },
-        "{push}.model.knob1.value": {
-            func: console.log,
-        }
     }
 });
 
@@ -260,17 +265,13 @@ adam.pushquencer.regionToSequence = function(that, stepz){
                 Object.assign(column, fluid.copy(thepayload));
             }
         }else{
-            //Object.assign(row, that.model.payload);
             Object.assign(row, fluid.copy(thepayload));
         }
     }
 
     let s = adam.sequence();
 
-    // todo add more options for beatlengths
     if( that.model.mode === 'cross'  ){
-        console.log(that.model.mode);
-        let numberofnotes;
         if (stepz[0].length === undefined){
             s.model.beatlength = stepz.length;      
         }else{
@@ -278,6 +279,13 @@ adam.pushquencer.regionToSequence = function(that, stepz){
         }
         s.model.beatlength *= 120;
     }
+    /*
+        // todo add more options for beatlengths
+        s.model.beatlength = (1/4) / (that.model.subdivision);
+     */
+
+    console.log(that.model.subdivision);
+    console.log(that.model.mode);
     //console.log(s.model.beatlength);
 
     s.arraytosequence( stepz );
@@ -308,7 +316,7 @@ adam.pushquencer.regionToSequence = function(that, stepz){
     }
 
     // todo move this to a post action?
-    that.model.midipayload.args.note++;
+    //that.model.midipayload.args.note++;
 };
 
 adam.pushquencer.removeSequence = function(that, removedseq){
@@ -374,7 +382,14 @@ adam.pushquencer.buttonHandler = function (that, button){
         }
         return; 
     }
-
+    if ( button === 46 ){
+        that.model.midipayload.args.note++;
+        return;
+    }
+    if ( button === 47 ){
+        that.model.midipayload.args.note--;
+        return;
+    }
     console.log( button );
 }
 
@@ -383,7 +398,7 @@ adam.pushquencer.knobsToPayload = function(that){
 
     let seq, payload;
     if (that.sequencergrid.model.selectedcell !== null){
-        seq = that.thegrid.getcell ( that.sequencergrid.model.selectedcell );
+        seq = that.sequencergrid.getcell ( that.sequencergrid.model.selectedcell );
         payload = seq.getlocationpayload( that.sequencergrid.model.selectedcell );
     }else{
         payload = that.model.selectedpayload.args;

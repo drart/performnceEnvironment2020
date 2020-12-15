@@ -56,7 +56,7 @@ fluid.defaults("adam.testout", {
 fluid.defaults("adam.gateout", {
     gradeNames: "flock.synth",
     model: {
-        channel: 11,
+        channel: 1,
         duration: 0.1
     },
 

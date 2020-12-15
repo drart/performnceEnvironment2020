@@ -1,11 +1,12 @@
-// TODO
-// modelize the knobs? val, min, max, inc, stringprepend, stringappend -> pair with the screen?
-//
+
+/// todo components pads, knobs, buttons, lcd
+// todo add colours for each type
+
 fluid.defaults("adam.midi.push", {
     gradeNames: ["flock.midi.connection", "fluid.modelComponent"],
-
     sysex: true,
     openImmediately: true,
+
     ports: {
         input: {
             name : "Ableton Push User Port"
@@ -14,9 +15,6 @@ fluid.defaults("adam.midi.push", {
             name : "Ableton Push User Port"
         }
     },
-
-    knobResoution: 100,
-    knobIncrement: 1,
 
     model : {
         lcdline1: ' '.padEnd(68, ' '),
@@ -107,7 +105,7 @@ fluid.defaults("adam.midi.push", {
             selected: 1,
             highlighted: 30
         },
-        buttons: {
+        buttons: { // dynamic component set to 0
             quarter: 1,
             quartertuple: 1,
             eighthtuple: 1,
@@ -120,11 +118,11 @@ fluid.defaults("adam.midi.push", {
             right: 1, 
             down: 1, 
             up: 1,
-            newbutton: 127,
+            newbutton: 1,
             deletebutton: 1, 
             automation: 1,
             note: 1, 
-            session: 127,
+            session: 1,
             select: 1,
             shift: 1,
             addTrack: 1,
@@ -135,33 +133,31 @@ fluid.defaults("adam.midi.push", {
             stop: 1,
             track: 1,
             clip: 1,
-            undo: 127,
+            undo: 1,
             mute: 1,
             device: 1,
-        }
-    },
-
-    components: {
-        padGrid : {
-            type: "adam.grid"
         }
     },
 
     modelListeners: {
         // wait until midi initializes?
         lcdline1: { 
+            excludeSource: "init",
             funcName: "adam.midi.push.lcdWrite",
             args : ["{that}", "{change}.value" , 0]
         },
         lcdline2: {
+            excludeSource: "init",
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{change}.value" , 1]
         },
         lcdline3: {
+            excludeSource: "init",
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{change}.value" , 2]
         },
         lcdline4: {
+            excludeSource: "init",
             funcName: "adam.midi.push.lcdWrite",
             args: ["{that}", "{change}.value" , 3]
         },
@@ -169,10 +165,6 @@ fluid.defaults("adam.midi.push", {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{change}.value", "{change}.oldvalue" ]
         },
-        "{that}.padGrid.model.grid": {
-            func: "adam.midi.push.gridUpdate",
-            args: ["{that}", "{change}.value", "{change}.oldValue"] 
-        }
     },
 
     events: {
@@ -231,10 +223,6 @@ fluid.defaults("adam.midi.push", {
             args: ["{that}"]
         },
         /*
-        padSet: {
-            funcName: "adam.midi.push.gridUpdate",
-            args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
-        },
         buttonWrite: {
             funcName: "adam.midi.push.buttonWrite",
             args: ["{that}", "{arguments}.0", "{arguments}.1", "{arguments}.2"]
@@ -243,17 +231,6 @@ fluid.defaults("adam.midi.push", {
     },
 
     listeners : {
-        /*
-        onReady: { 
-            func: function(that){
-                    that.lcdRefresh();
-                    that.padClearAll();
-                    that.buttonClearAll();
-                    that.applier.change("buttons.quarter", 126);
-            },
-            args: ["{that}"]
-        },
-        */
         noteOn : {
             funcName: "adam.midi.push.noteToEvents",
             args: ["{that}", "{arguments}.0"]
@@ -276,7 +253,6 @@ fluid.defaults("adam.midi.push", {
 // 240,71,127,21,<24+line(0-3)>,0,<Nchars+1>,<Offset>,<Chars>,247
 // 240,71,127,21,25,0,13,4,"Hello World",247
 adam.midi.push.lcdWrite = function(that, thestring="test", line = 0, offset = 0 ){
-    //console.log(thestring);
     var thestringinascii = []; 
     if(typeof thestring != "string"){
         thestring = thestring.toString();
@@ -336,34 +312,11 @@ adam.midi.push.buttonClearAll = function(that){
     }
 };
 
-/// todo make this more useable
-adam.midi.push.gridUpdate = function(that, newgrid, oldgrid){
-    console.log('gridupdate does nothing');
-    //console.log(newgrid);
-    //console.log(oldgrid);
-    /*
-
-    for( let x = 0; x < 8; x++){
-        for( let y = 0; y < 8; y++){
-            if ( typeof oldgrid[i] === "object" && typeof newgrid[i] === "object"){
-                if ( !testTwoObjects(oldgrid[i], newgrid[i])  ){
-                    
-                }
-            }
-        }
-    }
-
-     */
-};
-
-//adam.midi.push.padRefresh = function(that){};
-
 ///// TODO FIX THIS 
-//    map button to the buttons in the midi 
-
+// map button to the buttons in the midi 
 // idea rename to buttonstate?
 // gridquencer.push.applier.change("buttons.quarter", 2)
-adam.midi.push.buttonWrite = function (that, buttons, oldstate){
+adam.midi.push.buttonWrite = function (that, buttons, oldstate, path){
     var buttonMapping = {
         quarter: 36,
         quartertuple: 37,
@@ -513,84 +466,3 @@ adam.midi.push.controlToEvents = function(that, msg){
     }
 
 }; 
-
-//adam.midi.push.aftertouchToEvents}
-
-/////////////////////////////////////////////
-//  Controller Utilities
-/////////////////////////////////////////////
-fluid.defaults("adam.midi.console", {
-    listeners: {
-        "noteOn.log": function(msg){
-            console.log(msg);
-        },
-        "noteOff.log": function(msg){
-            console.log(msg);
-        },
-        "control.log": function(msg){
-            console.log(msg);
-        },
-        "aftertouch.log": function(msg){
-            console.log(msg)
-        },
-        "pitchbend.log": function(msg){
-            console.log(msg)
-        }
-    }
-});
-
-fluid.defaults("adam.midi.domlog", {
-    model: {
-        anchor: null,
-        domElement: null
-    },
-    invokers: {
-        creator: {
-            funcName: "adam.midi.domlog.ready",
-            args: ["{that}"]
-        },
-        printor: {
-            func: function(that, msg){
-                if(msg.type === "noteOn"){
-                    $("#" + that.id + "-noteon").text(fluid.prettyPrintJSON(msg));
-                }
-                if(msg.type === "noteOff"){
-                    $("#" + that.id + "-noteoff").text(fluid.prettyPrintJSON(msg));
-                }
-                if(msg.type === "control"){
-                    $("#" + that.id + "-cc").text(fluid.prettyPrintJSON(msg));
-                }
-                if(msg.type === "aftertouch"){
-                    $("#" + that.id + "-aftertouch").text(fluid.prettyPrintJSON(msg));
-                }
-                if(msg.type === "pitchbend"){
-                    $("#" + that.id + "-pitchbend").text(fluid.prettyPrintJSON(msg));
-                }
-            },
-            args: ["{that}", "{arguments}.0"]
-        }
-    },
-    listeners: {
-        "noteOn.domlog": "{that}.printor",
-        "noteOff.domlog": "{that}.printor",
-        "control.domlog": "{that}.printor",
-        "aftertouch.domlog": "{that}.printor",
-        "pitchbend.domlog": "{that}.printor",
-        "onReady.preapredom": "{that}.creator",
-    }
-});
-
-adam.midi.domlog.ready = function(that){
-    if (document.getElementById("midi-display") === null){
-        console.log("midi display dom element does not exist");
-    }
-    that.options.domElement = $("<div/>");
-    that.options.domElement.text( that.options.model.portname );
-    that.options.domElement.appendTo("#midi-display");
-    $("<div/>").attr("id", that.id+"-label").text(that.options.ports.input.name).appendTo(that.options.domElement);
-    $("<div/>").attr("id", that.id+"-noteon").appendTo(that.options.domElement);
-    $("<div/>").attr("id", that.id+"-noteoff").appendTo(that.options.domElement);
-    $("<div/>").attr("id", that.id+"-cc").appendTo(that.options.domElement);
-    $("<div/>").attr("id", that.id+"-aftertouch").appendTo(that.options.domElement);
-    $("<div/>").attr("id", that.id+"-pitchbend").appendTo(that.options.domElement);
-};
